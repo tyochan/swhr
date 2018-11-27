@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if error_message %}
+  <p><strong>{{error_message}}</strong></p>
+{% endif %}
+
+<form action="{% url 'personal_details:new_staff' %}" method="post">
+  {% csrf_token %}
+  <!-- <div class="form-group">
+    <label for="staff_no">Employee ID:</label>
+    <input type="text" name="staff_no" id="staff_no" class="form-control form-control-sm" value="{{employee.staff_no}}" required>
+  </div> -->
+  <div class="form-row">
+    <div class="form-group col">
+      <label for="first_name">First Name:</label>
+      <input type="text" name="first_name" id="first_name" class="form-control form-control-sm" value="{{employee.first_name}}" required>
+    </div>
+    <div class="form-group col">
+      <label for="last_name">Last Name:</label>
+      <input type="text" name="last_name" id="last_name" class="form-control form-control-sm" value="{{employee.last_name}}" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="start_date">Start Date:</label>
+    <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" value="{{employee.start_date}}">
+  </div>
+  <div class="form-row">
+    <div class="form-group col">
+      <label for="salary">Salary:</label>
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text form-control-sm">$</span>
+        </div>
+        <input type="text" name="salary" id="salary" class="form-control form-control-sm">
+      </div>
+    </div>
+    <div class="form-group col">
+      <label for="department">Department:</label>
+      <input type="text" name="department" id="department" class="form-control form-control-sm">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="address">Address:</label>
+    <input type="text" name="address" id="address" class="form-control form-control-sm" value="{{employee.address}}">
+  </div>
+  <div class="form-row">
+    <div class="form-group col">
+      <label for="phone_no">Phone No:</label>
+      <input type="text" name="phone_no" id="phone_no" class="form-control form-control-sm" value="{{employee.phone_no}}">
+    </div>
+    <div class="form-group col">
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email" class="form-control form-control-sm" value="{{employee.email}}" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="annual_leave">Annual Leave:</label>
+    <input type="text" name="annual_leave" id="annual_leave" class="form-control form-control-sm" value="{{employee.annual_leave}}">
+  </div>
+  <button type="submit" class="btn btn-outline-primary">Save</button>
+  <a href="{% url 'personal_details:index' %}" class="btn btn-outline-secondary" role="button">Back</a>
+</form>
+{% endblock %}
