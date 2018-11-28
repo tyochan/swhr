@@ -1,32 +1,21 @@
 from django.shortcuts import render, get_object_or_404
+from django.views import generic
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import Employee
 
-# Create your views here.
-def index(request):
-    employees = Employee.objects.all()
-    context = {'employees': employees}
-    return render(request, 'index.html', context)
+class IndexView(generic.ListView):
+    template_name = 'index.html'
+    context_object_name = 'employees'
 
-def detail(request, staff_no):
-    employee = get_object_or_404(Employee, pk = staff_no)
-    if request.method == 'POST':
-        employee.staff_no = request.POST['staff_no']
-        employee.first_name = request.POST['first_name']
-        employee.last_name = request.POST['last_name']
-        employee.start_date = request.POST['start_date']
-        employee.salary = request.POST['salary']
-        employee.department = request.POST['department']
-        employee.address = request.POST['address']
-        employee.phone_no = request.POST['phone_no']
-        employee.email = request.POST['email']
-        employee.annual_leave = request.POST['annual_leave']
-        return index(request)
-    elif request.method == 'GET':
-        context = {'employee': employee}
-        return render(request, 'detail.html', context)
+    def get_queryset(self):
+        return Employee.objects.all()
 
-def new_staff(request):
-    return render(request, 'new_staff.html')
+class DetailView(UpdateView):
+    model = Employee
+    fields = ['staff_no', 'first_name', 'last_name', 'start_date', 'start_date', 'salary', 'address', 'phone_no', 'annual_leave', 'email', 'bank_acc', 'department']
+    template_name = 'detail.html'
 
-def edit_staff(request, staff_no):
-    return
+class AddStaffView(CreateView):
+    model = Employee
+    fields = ['first_name', 'last_name', 'start_date', 'start_date', 'salary', 'address', 'phone_no', 'annual_leave', 'email', 'bank_acc', 'department']
+    template_name = 'employee_form.html'

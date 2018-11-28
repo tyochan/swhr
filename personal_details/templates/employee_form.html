@@ -8,12 +8,16 @@
   <p><strong>{{error_message}}</strong></p>
 {% endif %}
 
-<form action="{% url 'personal_details:detail' employee.staff_no %}" method="post">
+<form action="" method="post" enctype="multipart/form-data" class="form-horizontal">
   {% csrf_token %}
-    {% for field in form %}
+  {% for field in form %}
+    {% if field.label == 'Salary' %}
+      {% bootstrap_field field layout='horizontal' addon_before='$' %}
+    {% else %}
       {% bootstrap_field field layout='horizontal' %}
-    {% endfor %}
-  <button type="submit" class="btn btn-outline-primary">Save</button>
+    {% endif %}
+  {% endfor %}
+  <button type="submit" class="btn btn-outline-primary">Add</button>
   <a href="{% url 'personal_details:index' %}" class="btn btn-outline-secondary" role="button">Back</a>
 </form>
 {% endblock %}

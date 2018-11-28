@@ -1,6 +1,6 @@
 from django.db import models
 import uuid
-
+from django.urls import reverse
 
 # Create your models here.
 class Employee(models.Model):
@@ -15,6 +15,12 @@ class Employee(models.Model):
     email = models.EmailField(default = 'test@81.com')
     bank_acc = models.CharField(max_length = 100, default = '123-456-778')
     department = models.CharField(max_length = 100, default = '-')
+
+    class Meta:
+        ordering = ['-last_name']
+
+    def get_absolute_url(self):
+        return reverse('personal_details:detail', kwargs={'pk': self.pk})
 
     # def randomID():
     #     random_number = User.objects.make_random_password(length=6, allowed_chars='0123456789')
