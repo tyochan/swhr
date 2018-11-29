@@ -1,21 +1,33 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import Employee
+from . import forms
+
 
 class IndexView(generic.ListView):
     template_name = 'index.html'
     context_object_name = 'employees'
 
     def get_queryset(self):
-        return Employee.objects.all()
+        return Employee.objects.all()  # .order_by('last_name')
 
-class DetailView(UpdateView):
-    model = Employee
-    fields = ['staff_no', 'first_name', 'last_name', 'start_date', 'start_date', 'salary', 'address', 'phone_no', 'annual_leave', 'email', 'bank_acc', 'department']
-    template_name = 'detail.html'
 
-class AddStaffView(CreateView):
+class EmployeeCreateView(CreateView):
+    form_class = forms.EmployeeForm
     model = Employee
-    fields = ['first_name', 'last_name', 'start_date', 'start_date', 'salary', 'address', 'phone_no', 'annual_leave', 'email', 'bank_acc', 'department']
     template_name = 'employee_form.html'
+
+
+class EmployeeUpdateView(UpdateView):
+    form_class = forms.EmployeeUpdateForm
+    model = Employee
+    template_name = 'employee_form.html'
+
+
+class EmployeeDeleteView(DeleteView):
+    # form_class = forms.EmployeeDeleteForm
+    model = Employee
+    template_name = 'employee_confirm_delete.html'
+    success_url = reverse_lazy('personal_details:index')

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% load bootstrap4 %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<form method="post">{% csrf_token %}
+  <div class="row form-row">
+    <div class="formColumn form-group col-md-1">
+      <div id="div_id_staff_no" class="form-group"> <label for="id_staff_no" class="col-form-label ">
+          Employee ID
+        </label>
+        <div class=""> <input type="text" name="staff_no" value="{{object.staff_no}}" maxlength="10" readonly="True" class="textinput textInput form-control" id="id_staff_no"><input type="hidden" name="initial-staff_no" value="587254" id="initial-id_staff_no">
+        </div>
+      </div>
+    </div>
+    <div class="formColumn form-group col-md-2">
+      <div id="div_id_first_name" class="form-group"> <label for="id_first_name" class="col-form-label  requiredField">First Name</label>
+        <div class=""><input type="text" name="first_name" maxlength="30" class="textinput textInput form-control" required="" id="id_first_name" value="{{object.first_name}}" readonly="True"> </div>
+      </div>
+    </div>
+    <div class=" formColumn form-group col-md-2">
+      <div id="div_id_last_name" class="form-group"> <label for="id_last_name" class="col-form-label  requiredField">Last Name</label>
+        <div class=""> <input type="text" name="last_name" maxlength="30" class="textinput textInput form-control" required="" id="id_last_name" value="{{object.last_name}}" readonly="True"> </div>
+      </div>
+    </div>
+    <div class="formColumn form-group col-md-2">
+      <div id="div_id_start_date" class="form-group"> <label for="id_start_date" class="col-form-label ">Date Joined</label>
+        <div class=""> <input type="text" name="start_date" value="{{object.start_date|date:'d-m-Y'}}" class="dateinput form-control" id="id_start_date" readonly="True"> </div>
+      </div>
+    </div>
+  </div>
+  <input type="submit" name="submit" value="Delete" class="btn btn-outline-danger" id="submit-id-submit">
+  <a href="{% url 'personal_details:index' %}" class="btn btn-outline-secondary" role="button">Back</a>
+</form>
+{% endblock %}
