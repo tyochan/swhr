@@ -51,7 +51,7 @@ class EmployeeForm(CrispyForm):
         )
 
         # Modify widget
-        self.fields['start_date'].widget = forms.DateInput(format='%d-%m-%Y')
+        self.fields['start_date'].widget = forms.DateInput(format='%Y-%m-%d')
 
         # Rename display fields' names
         self.fields['staff_no'].label = "Employee ID"

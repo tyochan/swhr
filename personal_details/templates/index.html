@@ -19,7 +19,7 @@
       <td>{{e.staff_no}}</td>
       <td>{{e.first_name}}</td>
       <td>{{e.last_name}}</td>
-      <td>{{e.start_date|date:"d-m-Y"}}</td>
+      <td>{{e.start_date|date:"Y-m-d"}}</td>
       <td>
         <a href="{% url 'personal_details:update_staff' e.staff_no %}" class="btn btn-info" role="button">Edit</a>
       </td>
