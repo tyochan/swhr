@@ -17,13 +17,13 @@ class IndexView(generic.ListView):
 class EmployeeCreateView(CreateView):
     form_class = forms.EmployeeForm
     model = Employee
-    template_name = 'employee_form.html'
+    template_name = 'form.html'
 
 
 class EmployeeUpdateView(UpdateView):
     form_class = forms.EmployeeUpdateForm
     model = Employee
-    template_name = 'employee_form.html'
+    template_name = 'form.html'
 
 
 class EmployeeDeleteView(DeleteView):

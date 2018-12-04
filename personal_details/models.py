@@ -30,7 +30,7 @@ class Employee(models.Model):
                                 primary_key=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
-    start_date = models.DateField(default=default_date, blank=True)
+    start_date = models.DateField(default=timezone.now, blank=True)
     salary = models.FloatField(default=default_salary, blank=True)
     address = models.CharField(max_length=150,
                                default=default_address, blank=True)

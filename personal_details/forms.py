@@ -24,7 +24,7 @@ class EmployeeForm(CrispyForm):
         self.helper.layout = Layout(
             Row(
                 Column(Field('staff_no', readonly=True),
-                       css_class='form-group col-md-1'),
+                       css_class='form-group col-sm-1'),
                 Column('first_name', css_class='form-group col-md-2'),
                 Column('last_name', css_class='form-group col-md-2'),
                 Column('start_date', css_class='form-group col-md-2'),
@@ -51,10 +51,11 @@ class EmployeeForm(CrispyForm):
         )
 
         # Modify widget
-        self.fields['start_date'].widget = forms.DateInput(format='%Y-%m-%d')
+        self.fields['start_date'].widget = forms.DateInput(
+            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false'})
 
         # Rename display fields' names
-        self.fields['staff_no'].label = "Employee ID"
+        self.fields['staff_no'].label = "Staff ID"
         self.fields['first_name'].label = "First Name"
         self.fields['last_name'].label = "Last Name"
         self.fields['start_date'].label = "Date Joined"
