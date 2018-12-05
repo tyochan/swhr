@@ -1,4 +1,4 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, ValidationError
 from django import forms
 from .models import Leave
 
@@ -30,9 +30,8 @@ class LeaveForm(CrispyForm):
                 css_class='form-row'
             ),
             Row(
-                Column('from_time', css_class='form-group col-md-1'),
-                Column('to_time', css_class='form-group col-md-1'),
-                Column(AppendedText('spend', 'Days'),
+                Column('day_type', css_class='form-group col-md-2'),
+                Column(AppendedText('spend', 'Days', readonly=True),
                        css_class='form-group col-md-2'),
                 Column(Field('type'),
                        css_class='form-group col-md-2'),
@@ -50,13 +49,13 @@ class LeaveForm(CrispyForm):
 
         # Modify widget
         self.fields['start_date'].widget = forms.DateInput(
-            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false'})
+            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['end_date'].widget = forms.DateInput(
-            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false'})
+            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['from_time'].widget = forms.TimeInput(
-            format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false'})
+            format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['to_time'].widget = forms.TimeInput(
-            format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false'})
+            format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['remarks'].widget = forms.Textarea()
 
         # Rename display fields' names
@@ -65,8 +64,44 @@ class LeaveForm(CrispyForm):
         self.fields['from_time'].label = "From Time"
         self.fields['to_time'].label = "To Time"
         self.fields['spend'].label = "Days Spend"
+        self.fields['day_type'].label = "Day Type"
 
         self.fields['status'].disabled = True
+
+
+class LeaveCreateForm(LeaveForm):
+    def __init__(self, *args, **kwargs):
+        super(LeaveCreateForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.cleaned_data["spend"]:
+            data = self.cleaned_data
+
+            # Check if leave exists quota
+            if data["type"] == 'AL':
+                if data["spend"] > data["employee"].annual_leave:
+                    raise ValidationError(
+                        'Leave exceeds your quota: %(quota)s days.', params={'quota': data["employee"].annual_leave})
+
+            # Check if date period already in leaves
+            # Full day leaves
+            if data["day_type"] != 'HD':
+                leaves = Leave.objects.exclude(
+                    status="RE").filter(employee=data["employee"])
+                for l in leaves:
+                    if l.start_date <= data["end_date"] and l.end_date >= data["start_date"]:
+                        raise ValidationError(
+                            'Leave overlaps with existing leave: %(leave)s', params={'leave': l})
+            else:  # Half day leaves
+                count = Leave.objects.exclude(
+                    status="RE").filter(
+                    start_date=data["start_date"]).count()
+                if count >= 2:
+                    raise ValidationError(
+                        'Leaves already applied for: %(date)s', params={'date': data["start_date"]}
+                    )
+
+        return super().clean()
 
 
 class LeaveUpdateForm(LeaveForm):
@@ -76,7 +111,7 @@ class LeaveUpdateForm(LeaveForm):
             Submit, 'Update', css_class="btn-outline-primary")
 
         for name, field in self.fields.items():
-            if field == self.fields['status'] or field == self.fields['spend']:
+            if field == self.fields['status']:
                 field.disabled = False
             else:
                 field.disabled = True

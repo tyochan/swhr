@@ -52,7 +52,7 @@ class EmployeeForm(CrispyForm):
 
         # Modify widget
         self.fields['start_date'].widget = forms.DateInput(
-            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false'})
+            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
 
         # Rename display fields' names
         self.fields['staff_no'].label = "Staff ID"

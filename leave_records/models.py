@@ -6,8 +6,6 @@ import datetime
 import uuid
 from . import choices
 
-default_status = "Pending"
-
 
 def generate_random_id():
     random_id = str(uuid.uuid4().int)[:10]
@@ -34,6 +32,8 @@ class Leave(models.Model):
     remarks = models.CharField(max_length=500, blank=True, null=True)
     type = models.CharField(
         max_length=30, choices=choices.LEAVE_TYPE, default='AL')
+    day_type = models.CharField(
+        max_length=10, choices=choices.LEAVE_DAY_TYPE, default='FD', blank=True)
 
     # class Meta:
     # ordering = ['start_date']
