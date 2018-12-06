@@ -36,9 +36,7 @@ class Employee(models.Model):
                                default=default_address, blank=True)
     phone_no = models.CharField(max_length=20,
                                 default=default_phone_no, blank=True)
-    annual_leave = models.DecimalField(max_digits=3,
-                                       decimal_places=0,
-                                       default=default_annual_leave, blank=True)
+    annual_leave = models.FloatField(default=default_annual_leave, blank=True)
     email = models.EmailField(default=default_email, blank=True)
     bank_acc = models.CharField(max_length=100,
                                 default=default_bank_acc, blank=True)

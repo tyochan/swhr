@@ -69,17 +69,8 @@ $().ready(function() {
   // Initialize All Datepicker
   $(".datepicker").datepicker()
 
-  if ($("#id_status").val() != "PD") {
-    $("#id_status").prop('disabled', true)
-    $('input[type="submit"]').remove()
-  }
-
   // If Leave Records Create
   if (window.location.pathname == "/leave_records/create") {
-    // If status != pending disable
-    log($("#id_status").val())
-
-
     // Init start picking date
     $(".datepicker").datepicker("setStartDate", new Date())
 

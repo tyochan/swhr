@@ -14,6 +14,7 @@ class CrispyForm(ModelForm):
 
 
 class LeaveForm(CrispyForm):
+
     class Meta:
         model = Leave
         fields = '__all__'
@@ -66,6 +67,7 @@ class LeaveForm(CrispyForm):
         self.fields['spend'].label = "Days Spend"
         self.fields['day_type'].label = "Day Type"
 
+        self.fields['spend'].disabled = True
         self.fields['status'].disabled = True
 
 
@@ -108,10 +110,18 @@ class LeaveUpdateForm(LeaveForm):
     def __init__(self, *args, **kwargs):
         super(LeaveUpdateForm, self).__init__(*args, **kwargs)
         self.helper.filter(Submit).wrap(
-            Submit, 'Update', css_class="btn-outline-primary")
+            Submit,  'Approve', css_class="btn-outline-primary")
+        self.helper.layout.insert(-1, Submit('reject',
+                                             'Reject', css_class='btn-outline-danger'))
 
         for name, field in self.fields.items():
-            if field == self.fields['status']:
-                field.disabled = False
-            else:
-                field.disabled = True
+            field.disabled = True
+
+
+class LeaveDetailForm(LeaveForm):
+    def __init__(self, *args, **kwargs):
+        super(LeaveDetailForm, self).__init__(*args, **kwargs)
+        self.helper.layout.pop(-2)
+
+        for name, field in self.fields.items():
+            field.disabled = True
