@@ -37,7 +37,6 @@ class LeaveUpdateView(UpdateView):
             leave.status = 'AP'
         else:
             leave.status = 'RE'
-
         leave.save()
         return HttpResponseRedirect("/leave_records/")
 

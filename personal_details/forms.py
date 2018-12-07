@@ -27,18 +27,23 @@ class EmployeeForm(CrispyForm):
                        css_class='form-group col-sm-1'),
                 Column('first_name', css_class='form-group col-md-2'),
                 Column('last_name', css_class='form-group col-md-2'),
-                Column('start_date', css_class='form-group col-md-2'),
+                Column('join_date', css_class='form-group col-md-1'),
+                Column('leave_date', css_class='form-group col-md-1'),
+                Column(PrependedText('active', ''),
+                       css_class='form-group col-md-1'),
                 css_class='form-row'
             ),
             Row(
                 Column('phone_no', css_class='form-group col-md-2'),
                 Column('email', css_class='form-group col-md-2'),
                 Column('department', css_class='form-group col-md-3'),
+                Column('title', css_class='form-group col-md-2'),
                 css_class='form-row'
             ),
-            Field('address', css_class="form-group col-md-7"),
+            Field('address', css_class="form-group col-md-9"),
             Row(
-                Column('bank_acc', css_class='form-group col-md-3'),
+                Column('bank', css_class='form-group col-md-3'),
+                Column('bank_acc', css_class='form-group col-md-2'),
                 Column(PrependedText('salary', '$'),
                        css_class='form-group col-md-2'),
                 Column(AppendedText('annual_leave', 'Days'),
@@ -51,17 +56,22 @@ class EmployeeForm(CrispyForm):
         )
 
         # Modify widget
-        self.fields['start_date'].widget = forms.DateInput(
+        self.fields['join_date'].widget = forms.DateInput(
+            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+        self.fields['leave_date'].widget = forms.DateInput(
             format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
 
         # Rename display fields' names
         self.fields['staff_no'].label = "Staff ID"
         self.fields['first_name'].label = "First Name"
         self.fields['last_name'].label = "Last Name"
-        self.fields['start_date'].label = "Date Joined"
+        self.fields['join_date'].label = "Date Joined"
+        self.fields['leave_date'].label = "Date Left"
         self.fields['phone_no'].label = "Phone No"
         self.fields['bank_acc'].label = "Bank Account"
         self.fields['annual_leave'].label = "Annual Leave"
+
+        self.fields['leave_date'].disabled = True
 
 
 class EmployeeUpdateForm(EmployeeForm):

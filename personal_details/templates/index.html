@@ -6,26 +6,24 @@
   <thead>
     <tr>
       <th>Employee ID</th>
-      <th>Last Name</th>
-      <th>First Name</th>
+      <th>Name</th>
       <th>Date Joined</th>
       <th></th>
-      <th></th>
+      <!-- <th></th> -->
     </tr>
   </thead>
   <tbody>
     {% for e in employees %}
     <tr>
       <td>{{e.staff_no}}</td>
-      <td>{{e.last_name}}</td>
-      <td>{{e.first_name}}</td>
-      <td>{{e.start_date|date:"Y-m-d"}}</td>
+      <td>{{e.last_name|add:" "|add:e.first_name}}</td>
+      <td>{{e.join_date|date:"Y-m-d"}}</td>
       <td>
-        <a href="{% url 'personal_details:update_staff' e.staff_no %}" class="btn btn-info" role="button">Edit</a>
+        <a href="{% url 'personal_details:update_staff' e.staff_no %}" class="btn btn-info" role="button">Edit Details</a>
       </td>
-      <td>
+      <!-- <td>
         <a href="{% url 'personal_details:delete_staff' e.staff_no %}" class="btn btn-danger" role="button">Delete</a>
-      </td>
+      </td> -->
     </tr>
     {% endfor %}
   </tbody>

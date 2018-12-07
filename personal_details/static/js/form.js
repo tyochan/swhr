@@ -69,6 +69,13 @@ $().ready(function() {
   // Initialize All Datepicker
   $(".datepicker").datepicker()
 
+  // If Personal Details
+  if (window.location.pathname.includes("personal_details/update")) {
+    if (!$("#id_active")) {
+      $("#id_leave_date").prop('disabled', false)
+    }
+  }
+
   // If Leave Records Create
   if (window.location.pathname == "/leave_records/create") {
     // Init start picking date
@@ -122,5 +129,13 @@ $('#id_day_type').on('change', function() {
     $('input[name=spend]').val(0.5)
   } else {
     $('input[name=spend]').val(1)
+  }
+})
+
+$("#id_active").on('click', function() {
+  if (this.checked) {
+    $("#id_leave_date").prop('disabled', true)
+  } else {
+    $("#id_leave_date").prop('disabled', false)
   }
 })
