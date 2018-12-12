@@ -24,16 +24,16 @@ class Leave(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
-    from_time = models.TimeField(null=True, blank=True)
-    to_time = models.TimeField(null=True, blank=True)
+    # from_time = models.TimeField(null=True, blank=True)
+    # to_time = models.TimeField(null=True, blank=True)
     spend = models.FloatField()
     status = models.CharField(
-        max_length=10, choices=choices.STATUS_CHOICES, default='PD')
+        max_length=10, choices=choices.STATUS_CHOICES, default='PD', blank=True)
     remarks = models.CharField(max_length=500, blank=True, null=True)
     type = models.CharField(
         max_length=30, choices=choices.LEAVE_TYPE, default='AL')
     day_type = models.CharField(
-        max_length=10, choices=choices.LEAVE_DAY_TYPE, default='FD')
+        max_length=10, choices=choices.LEAVE_DAY_TYPE, default='FD', blank=True)
 
     # class Meta:
     # ordering = ['start_date']
@@ -42,4 +42,4 @@ class Leave(models.Model):
         return reverse('leave_records:index')
 
     def __str__(self):
-        return self.employee.first_name + ' ' + self.employee.last_name + ' ' + self.start_date.strftime('%Y/%m/%d') + ' to ' + self.end_date.strftime('%Y/%m/%d') + ' ' + self.day_type
+        return self.employee.last_name + ' ' + self.employee.first_name + ' ' + self.start_date.strftime('%Y/%m/%d') + ' to ' + self.end_date.strftime('%Y/%m/%d') + ' ' + self.get_day_type_display()

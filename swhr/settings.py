@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'personal_details',
     'leave_records',
+    'payroll',
     'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',

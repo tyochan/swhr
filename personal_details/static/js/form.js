@@ -19,10 +19,34 @@ $.fn.datepicker.defaults.todayBtn = true
 $.fn.datepicker.defaults.todayHighlight = true
 $.fn.datepicker.defaults.datesDisabled = HOLIDAYS
 
+function enable(object) {
+  object.prop('disabled', false)
+}
+
+function disable(object) {
+  object.prop('disabled', true)
+}
+
+function getStartDateText() {
+  return $('#id_start_date').val()
+}
+
+function getEndDateText() {
+  return $('#id_end_date').val()
+}
+
+function getStartDate() {
+  return $('#id_start_date').datepicker('getDate')
+}
+
+function getEndDate() {
+  return $('#id_end_date').datepicker('getDate')
+}
+
 // Calculate spend days
 function updateSpendDays() {
-  start_date = $('#id_start_date').datepicker('getDate')
-  end_date = $('#id_end_date').datepicker('getDate')
+  start_date = getStartDate()
+  end_date = getEndDate()
 
   // Calculate workdays with weekends
   diff = (end_date - start_date) / MSPERDAY
@@ -36,23 +60,24 @@ function updateSpendDays() {
   for (var i in HOLIDAYS) {
     array = HOLIDAYS[i].split('-');
     date = new Date(array[0], array[1] - 1, array[2]);
-    if (date >= $('#id_start_date').datepicker('getDate') && (date <= $('#id_end_date').datepicker('getDate'))) {
+    if (date >= start_date && (date <= end_date)) {
       diff--
     }
-  }
-
-  // Toggle Day type
-  if ($("#id_end_date").val() && ($("#id_start_date").val() == $("#id_end_date").val())) {
-    $("#id_day_type").val('FD')
-    $("#id_day_type").prop('disabled', false)
-  } else {
-    $("#id_day_type").val('FD')
-    $("#id_day_type").prop('disabled', true)
   }
 
   // Update days spend
   diff += 1
   $('input[name=spend]').val(diff)
+}
+
+// Toggle Day type
+function toggleDayType() {
+  // If start_date == end_date
+  if (getStartDateText() === getEndDateText()) {
+    enable($("#id_day_type"))
+  } else {
+    disable($("#id_day_type"))
+  }
 }
 
 
@@ -72,70 +97,74 @@ $().ready(function() {
   // If Personal Details
   if (window.location.pathname.includes("personal_details/update")) {
     if (!$("#id_active")) {
-      $("#id_leave_date").prop('disabled', false)
+      enable($("#id_leave_date"))
     }
   }
 
   // If Leave Records Create
-  if (window.location.pathname == "/leave_records/create") {
-    // Init start picking date
+  if (window.location.pathname.includes("leave_records/create")) {
+    // Initialize  picking date
     $(".datepicker").datepicker("setStartDate", new Date())
-
-    // Init end picking date
     var endDate = new Date()
     endDate.setMonth(endDate.getMonth() + 6)
     $(".datepicker").datepicker("setEndDate", endDate)
 
-    // No input then disable end date and day type
-    if (!$("#id_start_date").val() && !$("#id_end_date").val()) {
-      $("#id_end_date").prop('disabled', true)
-      $("#id_day_type").prop('disabled', true)
+    // If no date input
+    if (!getStartDate() && !getEndDate()) {
+      disable($("#id_end_date"))
+      disable($("#id_day_type"))
     } else { // Has input
-      // Same date enable day Type
-      if ($("#id_start_date").val() != $("#id_end_date").val()) {
-        $("#id_day_type").val('FD')
-        $("#id_day_type").prop('disabled', true)
+      // Set start date and end date
+      $('#id_start_date').datepicker("setEndDate", getEndDate())
+      $('#id_end_date').datepicker("setStartDate", getStartDate())
+
+      // If start_date = end_date
+      if (getStartDateText() === getEndDateText()) {
+        enable($("#id_day_type"))
+      } else {
+        disable($("#id_day_type"))
       }
     }
   }
 });
 
-// Start date on change
+
+
+// start_date change
 $('#id_start_date').datepicker().on("changeDate", function(e) {
-  // If Leave Records Create
-  if (window.location.pathname == "/leave_records/create") {
-    // First time input
-    if (!$('#id_end_date').val()) {
-      $('#id_end_date').datepicker("setStartDate", e.date)
-      $("#id_end_date").prop('disabled', false)
-    } else {
-      updateSpendDays()
-    }
-  }
-});
+  // Set min end_date
+  $('#id_end_date').datepicker("setStartDate", e.date)
 
-// End date on change
-$('#id_end_date').datepicker().on("changeDate", function(e) {
-  // If Leave Records Create
-  if (window.location.pathname == "/leave_records/create") {
-    $('#id_start_date').datepicker("setEndDate", e.date)
-    updateSpendDays()
-  }
-});
-
-// Day type change
-$('#id_day_type').on('change', function() {
-  if (this.value == 'HD') {
-    $('input[name=spend]').val(0.5)
+  // If has end_date
+  if ($('#id_end_date').val()) {
+    updateSpendDays() // Calculate spend
+    toggleDayType() // Toggle day_type
   } else {
+    enable($("#id_end_date"))
+  }
+});
+
+// end_date change
+$('#id_end_date').datepicker().on("changeDate", function(e) {
+  // Set max start_date
+  $('#id_start_date').datepicker("setEndDate", e.date)
+  updateSpendDays() // Calculate spend
+  toggleDayType() // Toggle day_type
+});
+
+// day_type change
+$('#id_day_type').on('change', function() {
+  if (this.value == 'HD') { // Half day spend = 0.5
+    $('input[name=spend]').val(0.5)
+  } else { // Full day spend = 1 OR Blank
     $('input[name=spend]').val(1)
   }
 })
 
 $("#id_active").on('click', function() {
   if (this.checked) {
-    $("#id_leave_date").prop('disabled', true)
+    disable($("#id_leave_date"))
   } else {
-    $("#id_leave_date").prop('disabled', false)
+    enable($("#id_leave_date"))
   }
 })
