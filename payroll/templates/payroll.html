@@ -7,16 +7,23 @@
 <table class="table table-striped table-hover text-center">
   <thead>
     <tr>
-      <th>Start Date</th>
-      <th>End Date</th>
+      <th>Pay Period</th>
       <th>Employee</th>
-      <th>Leave Type</th>
-      <th>Status</th>
+      <th>Pay Method</th>
+      <th>Pay Amount</th>
       <th>Action</th>
     </tr>
   </thead>
   <tbody>
+    {% for p in payments %}
+    <tr>
+      <td>{{p.period_start|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}}</td>
+      <td>{{p.employee.last_name|add:" "|add:p.employee.first_name}}</td>
+      <td>{{p.method}}</td>
+      <td>{{p.net_pay}}</td>
+    </tr>
+    {% endfor %}
   </tbody>
 </table>
-<a href="{% url 'leave_records:create_leave' %}" class="btn btn-primary" role="button">Add New Leave</a>
+<a href="{% url 'leave_records:create_leave' %}" class="btn btn-primary" role="button">Add New Payment</a>
 {% endblock %}

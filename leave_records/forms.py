@@ -50,9 +50,9 @@ class LeaveForm(CrispyForm):
 
         # Modify widget
         self.fields['start_date'].widget = forms.DateInput(
-            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            format='%d/%m/%Y', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['end_date'].widget = forms.DateInput(
-            format='%Y-%m-%d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            format='%d/%m/%Y', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         # self.fields['from_time'].widget = forms.TimeInput(
         #     format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         # self.fields['to_time'].widget = forms.TimeInput(

@@ -17,7 +17,7 @@
     <tr>
       <td>{{e.staff_no}}</td>
       <td>{{e.last_name|add:" "|add:e.first_name}}</td>
-      <td>{{e.join_date|date:"Y-m-d"}}</td>
+      <td>{{e.join_date|date:"d/m/Y"}}</td>
       <td>
         <a href="{% url 'personal_details:update_staff' e.staff_no %}" class="btn btn-info" role="button">Edit Details</a>
       </td>

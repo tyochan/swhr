@@ -18,8 +18,8 @@
   <tbody>
     {% for l in leaves %}
     <tr>
-      <td>{{l.start_date|date:"Y-m-d"}}</td>
-      <td>{{l.end_date|date:"Y-m-d"}}</td>
+      <td>{{l.start_date|date:"d/m/Y"}}</td>
+      <td>{{l.end_date|date:"d/m/Y"}}</td>
       <td>{{l.employee.last_name|add:" "|add:l.employee.first_name}}</td>
       <td>{{l.get_type_display}}</td>
       <td>{{l.get_status_display}}</td>
