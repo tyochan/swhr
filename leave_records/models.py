@@ -17,10 +17,10 @@ def generate_random_id():
 
 
 class Leave(models.Model):
-    serial_no = models.CharField(max_length=10,
-                                 default=generate_random_id,
-                                 unique=True,
-                                 primary_key=True)
+    # serial_no = models.CharField(max_length=10,
+    #                              default=generate_random_id,
+    #                              unique=True,
+    #                              primary_key=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -36,7 +36,7 @@ class Leave(models.Model):
         max_length=10, choices=choices.LEAVE_DAY_TYPE, default='FD', blank=True)
 
     # class Meta:
-    # ordering = ['start_date']
+    #     ordering = ['status']
 
     def get_absolute_url(self):
         return reverse('leave_records:index')

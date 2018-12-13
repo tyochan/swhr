@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from .models import Payment
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-# from . import forms
+from . import forms
 from django.http import HttpResponseRedirect
 
 # Create your views here.
@@ -14,3 +14,9 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         return Payment.objects.all()
+
+
+class PaymentCreateView(generic.CreateView):
+    form_class = forms.PaymentCreateForm
+    model = Payment
+    template_name = 'form.html'

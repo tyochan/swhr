@@ -23,24 +23,23 @@ class LeaveForm(CrispyForm):
         super(LeaveForm, self).__init__(*args, **kwargs)
         self.helper.layout = Layout(
             Row(
-                Column(Field('serial_no', readonly=True),
-                       css_class='form-group col-md-1'),
                 Column('employee', css_class='form-group col-md-3'),
+                Column('day_type', css_class='form-group col-md-1', readonly=True),
                 Column('start_date', css_class='form-group col-md-1'),
                 Column('end_date', css_class='form-group col-md-1'),
                 css_class='form-row'
             ),
             Row(
-                Column('day_type', css_class='form-group col-md-2', readonly=True),
                 Column(AppendedText('spend', 'Days', readonly=True),
                        css_class='form-group col-md-2'),
                 Column(Field('type'),
                        css_class='form-group col-md-2'),
+                Column('status', css_class="form-group col-md-2"),
                 css_class='form-row'
             ),
             Row(
-                Column('remarks', css_class="form-group col-md-4"),
-                Column('status', css_class="form-group col-md-2"),
+                Column('remarks', css_class="form-group col-md-6"),
+
                 css_class='form-row',
             ),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
@@ -50,9 +49,9 @@ class LeaveForm(CrispyForm):
 
         # Modify widget
         self.fields['start_date'].widget = forms.DateInput(
-            format='%d/%m/%Y', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            format='Y-m-d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['end_date'].widget = forms.DateInput(
-            format='%d/%m/%Y', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            format='Y-m-d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         # self.fields['from_time'].widget = forms.TimeInput(
         #     format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
         # self.fields['to_time'].widget = forms.TimeInput(

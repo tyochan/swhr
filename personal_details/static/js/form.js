@@ -36,11 +36,11 @@ function getEndDateText() {
 }
 
 function getStartDate() {
-  return $('#id_start_date').datepicker('getDate')
+  return $('#id_start_date').datepicker('getDate') || $('#id_period_start').datepicker('getDate')
 }
 
 function getEndDate() {
-  return $('#id_end_date').datepicker('getDate')
+  return $('#id_end_date').datepicker('getDate') || $('#id_period_end').datepicker('getDate')
 }
 
 // Calculate spend days

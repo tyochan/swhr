@@ -10,7 +10,7 @@
       <th>Pay Period</th>
       <th>Employee</th>
       <th>Pay Method</th>
-      <th>Pay Amount</th>
+      <th>Pay Amount ($)</th>
       <th>Action</th>
     </tr>
   </thead>
@@ -21,9 +21,10 @@
       <td>{{p.employee.last_name|add:" "|add:p.employee.first_name}}</td>
       <td>{{p.method}}</td>
       <td>{{p.net_pay}}</td>
+      <td></td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-<a href="{% url 'leave_records:create_leave' %}" class="btn btn-primary" role="button">Add New Payment</a>
+<a href="{% url 'payroll:create_payment' %}" class="btn btn-primary" role="button">Add New Payment</a>
 {% endblock %}

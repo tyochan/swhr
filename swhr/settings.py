@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'leave_records',
     'payroll',
     'crispy_forms',
+    'bootstrap_modal_forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

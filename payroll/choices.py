@@ -3,3 +3,8 @@ PAYMENT_METHOD = {
     ('Cheque', 'Cheque'),
     ('Transfer', 'Transfer'),
 }
+STATUS_CHOICES = (
+    ('PD', 'PENDING'),
+    ('PA', 'PAID'),
+    ('CC', 'CANCELLED'),
+)

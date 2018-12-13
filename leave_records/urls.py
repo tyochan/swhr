@@ -9,6 +9,6 @@ urlpatterns = [
 
     # /leave_records/string/
     path('create', views.LeaveCreateView.as_view(), name='create_leave'),
-    path('update/<int:pk>', views.LeaveUpdateView.as_view(), name='update_leave'),
-    path('detail/<int:pk>', views.LeaveDetailView.as_view(), name='detail_leave'),
+    path('update/<pk>', views.LeaveUpdateView.as_view(), name='update_leave'),
+    path('detail/<pk>', views.LeaveDetailView.as_view(), name='detail_leave'),
 ]

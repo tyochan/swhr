@@ -25,9 +25,9 @@
       <td>{{l.get_status_display}}</td>
       <td>
         {% if l.status == 'PD' %}
-        <a href="{% url 'leave_records:update_leave' l.serial_no %}" class="btn btn-info" role="button">Amend Status</a>
+        <a href="{% url 'leave_records:update_leave' l.pk %}" class="btn btn-info" role="button">Amend Status</a>
         {% else %}
-        <a href="{% url 'leave_records:detail_leave' l.serial_no %}" class="btn btn-success" role="button">Check Record</a>
+        <a href="{% url 'leave_records:detail_leave' l.pk %}" class="btn btn-success" role="button">Check Record</a>
         {% endif %}
       </td>
     </tr>

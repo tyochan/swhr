@@ -16,3 +16,5 @@ class Payment(models.Model):
     mpf_employer = models.FloatField()
     mpf_employee = models.FloatField()
     net_pay = models.FloatField()
+    # status = models.CharField(
+    #     max_length=10, choices=choices.STATUS_CHOICES, default='PD', blank=True)
