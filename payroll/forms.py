@@ -39,7 +39,7 @@ class PaymentForm(CrispyForm):
                             <div class="input-group-prepend">
                             <span class="input-group-text">$</span>
                             </div>
-                            <input type="number" class="numberinput form-control" d="id_basic_salary" readonly=True>
+                            <input type="number" class="numberinput form-control" id="id_basic_salary" readonly=True>
                           </div>
                         </div>
                       </div>
@@ -60,7 +60,7 @@ class PaymentForm(CrispyForm):
             ),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
             HTML(
-                '<a href="{% url \'leave_records:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
+                '<a href="{% url \'payroll:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
         )
 
         # Modify widget

@@ -19,13 +19,13 @@ class IndexView(generic.ListView):
 class LeaveCreateView(CreateView):
     form_class = forms.LeaveCreateForm
     model = Leave
-    template_name = 'form.html'
+    template_name = 'form_leave.html'
 
 
 class LeaveUpdateView(UpdateView):
     form_class = forms.LeaveUpdateForm
     model = Leave
-    template_name = 'form.html'
+    template_name = 'form_leave.html'
 
     # Updating employee leave quota and leave status
     def form_valid(self, form):
@@ -44,4 +44,4 @@ class LeaveUpdateView(UpdateView):
 class LeaveDetailView(UpdateView):
     form_class = forms.LeaveDetailForm
     model = Leave
-    template_name = 'form.html'
+    template_name = 'form_leave.html'
