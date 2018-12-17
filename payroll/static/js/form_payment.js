@@ -1,4 +1,4 @@
-$.fn.datepicker.defaults.daysOfWeekDisabled = ''
+$.fn.datepicker.defaults.daysOfWeekDisabled = '06'
 $.fn.datepicker.defaults.datesDisabled = ''
 
 function getStartDateText() {
@@ -23,7 +23,7 @@ function basic_salary() {
 
 $().ready(function() {
   // Initialize All Datepicker
-  $(".datepicker").datepicker()
+  $(".dateinput").datepicker()
 
   // If no date input
   if (!getStartDate() && !getEndDate()) {

@@ -29,7 +29,7 @@ class LeaveUpdateView(UpdateView):
 
     # Updating employee leave quota and leave status
     def form_valid(self, form):
-        leave = Leave.objects.get(serial_no=form.cleaned_data['serial_no'])
+        leave = Leave.objects.get(id=self.kwargs['pk'])
         if 'reject' not in self.request.POST:
             employee = leave.employee
             employee.annual_leave -= form.cleaned_data['spend']

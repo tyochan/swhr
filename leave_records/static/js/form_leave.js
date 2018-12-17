@@ -1,3 +1,5 @@
+$.fn.datepicker.defaults.startDate = new Date()
+
 function getStartDateText() {
   return $('#id_start_date').val()
 }
@@ -54,13 +56,12 @@ function toggleDayType() {
 
 $().ready(function() {
   // Initialize All Datepicker
-  $(".datepicker").datepicker()
+  $(".dateinput").datepicker()
 
   // Initialize  picking date
-  $(".datepicker").datepicker("setStartDate", new Date())
   var endDate = new Date()
-  endDate.setMonth(endDate.getMonth() + 6)
-  $(".datepicker").datepicker("setEndDate", endDate)
+  endDate.setMonth(endDate.getMonth() + 3)
+  $(".dateinput").datepicker("setEndDate", endDate)
 
   // If no date input
   if (!getStartDate() && !getEndDate()) {

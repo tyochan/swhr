@@ -1,6 +1,7 @@
 from django.urls import reverse_lazy
 from django.views import generic
 from .models import Payment
+from leave_records.models import Leave
 from personal_details.models import Employee
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from . import forms
@@ -8,6 +9,8 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django_ajax.decorators import ajax
 import datetime
 import calendar
+from django.db.models import Q
+from swhr import strings
 
 # Create your views here.
 
@@ -30,23 +33,99 @@ class PaymentCreateView(generic.CreateView):
 @ajax
 def getBasicSalary(request):
     employee = Employee.objects.get(staff_no=request.GET['staff_no'])
-    salary = employee.salary
-    past = datetime.date.today() - employee.join_date
-    mpf_employer = 0
-    mpf_employee = 0
-    net_pay = 0
 
-    # If third month
-    if past.days > 60 and past.days < 90:
-        day, num_days = calendar.monthrange(
-            employee.join_date.year, employee.join_date.month)
-        # Calculate first month mpf for employer
-        ratio = (num_days - employee.join_date.day + 1) / num_days
-        print(ratio)
+    print('Salary: (Period End Date - Period Join/Start Date - Leave Spend + 1) / Period Max Days * Basic Salary')
+    # Split and parse string date to int list
+    period_start = [int(x) for x in request.GET['period_start'].split("-")]
+    period_end = [int(x) for x in request.GET['period_end'].split("-")]
+    period_start = datetime.date(
+        period_start[0], period_start[1], period_start[2])
+    period_end = datetime.date(period_end[0], period_end[1], period_end[2])
+    print('Period: %s - %s' % (period_start, period_end))
+
+    # Max days this pay period
+    period_max = (period_end - period_start).days + 1
+    print('Period Max Days = %s' % period_max)
+    # First month
+    if (period_end - employee.join_date).days < 32:
+        period_work = (period_end - employee.join_date).days + 1
+    else:
+        period_work = period_max
+    print('Expected Period Work Days (with holidays and weekends) = %s' %
+          period_work)
+
+    # This month
+    leaves = Leave.objects.all().filter(employee=employee,
+                                        start_date__lte=period_end, end_date__gte=period_start).exclude(type__in=('AL', 'SL'))
+
+    for l in leaves:
+        # Limit leave in within period
+        if l.start_date < period_start:
+            l.start_date = period_start
+        if l.end_date > period_end:
+            l.end_date = period_end
+
+        # Calculate spend days
+        spend = (l.end_date - l.start_date).days + 1
+        # Weekends
+        temp = l.start_date
+        while temp < l.end_date + datetime.timedelta(days=1):
+            if temp.isoweekday() == 6 or temp.isoweekday() == 7:
+                spend -= 1
+            temp += datetime.timedelta(days=1)
+
+        # Holidays
+        for h in strings.HOLIDAYS:
+            date = datetime.datetime.strptime(h, '%Y-%m-%d').date()
+            if period_start < date < period_end:
+                spend -= 1
+
+        period_work -= spend
+        print('Leave: %s - %s, spend %s days' %
+              (l.start_date, l.end_date, spend))
+
+    print('Actual Period Work Days (with holidays and weekends) = %s' % period_work)
+    ratio = period_work / period_max
+    salary = employee.salary * ratio
+    print('Salary: %s * %s = %s' % (employee.salary, ratio, salary))
+
+    # Calculate net pay and mpf
+    mpf_employer, mpf_employee, net_pay = 0, 0, 0
+    past = (period_end - employee.join_date).days + 1  # Past days from join
+    print('Days passed from join date: %s' % past)
+    if past < 60:  # less than 3 months no mpf
+        print('Join Date: %s' % employee.join_date)
+        net_pay = salary
+    elif 60 <= past < 90:  # 3rd month
+        print('3rd month payment')
+        payments = Payment.objects.all().filter(employee=employee,
+                                                period_end__lte=period_start)
+        # Employer MPF cumulative
+        for p in payments:
+            if p.net_pay > 30000:
+                mpf_employer += 1500
+            else:
+                mpf_employer += p.net_pay * 0.05
+                print(mpf_employer)
+
         if salary > 30000:
-            mpf_employer = 1500 * ratio
-        else:  # 5%
-            mpf_employer = salary * 0.05 * ratio
-        print(mpf_employer)
+            mpf_employee = 1500
+            mpf_employer += 1500
+        elif 7100 <= salary <= 30000:
+            mpf_employee = salary * 0.05
+            mpf_employer += salary * 0.05
+        else:
+            mpf_employer += salary * 0.05
 
-    return {'basic_salary': salary, 'mpf_employer': mpf_employer, 'mpf_employee': mpf_employee, 'net_pay': net_pay}
+    else:  # 4th month onwards
+        if salary > 30000:
+            mpf_employee = 1500
+            mpf_employer = 1500
+        elif 7100 <= salary <= 30000:
+            mpf_employee = salary * 0.05
+            mpf_employer = salary * 0.05
+        else:
+            mpf_employer = salary * 0.05
+
+    net_pay = salary - mpf_employee
+    return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer, 'mpf_employee': mpf_employee, 'net_pay': net_pay}

@@ -1,6 +1,7 @@
 from django.forms import ModelForm, ValidationError
 from django import forms
 from .models import Payment
+import datetime
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Column
@@ -65,11 +66,11 @@ class PaymentForm(CrispyForm):
 
         # Modify widget
         self.fields['period_start'].widget = forms.DateInput(
-            format='Y-m-d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            attrs={'onkeydown': 'return false', 'autocomplete': 'off', 'readonly': True})
         self.fields['period_end'].widget = forms.DateInput(
-            format='Y-m-d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            attrs={'onkeydown': 'return false', 'autocomplete': 'off', 'readonly': True})
         self.fields['pay_date'].widget = forms.DateInput(
-            format='Y-m-d', attrs={'class': 'datepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
+            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
 
         # Rename display fields' names
         self.fields['period_start'].label = "Period Start"
@@ -77,7 +78,15 @@ class PaymentForm(CrispyForm):
         self.fields['pay_date'].label = "Pay Date"
         self.fields['method'].label = "Pay Method"
 
-        # self.fields['status'].disabled = True
+        # Init field data
+        date = datetime.date.today()  # datetime.date(2018, 11, 18)
+        #
+        period_start = date.replace(
+            month=(date.month - 1), day=25)
+        period_end = date.replace(day=24)
+        self.fields['period_start'].initial = period_start
+        self.fields['period_end'].initial = period_end
+        self.fields['pay_date'].initial = date
 
 
 class PaymentCreateForm(PaymentForm):

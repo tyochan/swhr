@@ -16,10 +16,11 @@ function getEndDate() {
 
 $().ready(function() {
   // Initialize All Datepicker
-  $(".datepicker").datepicker()
+  $(".dateinput").datepicker()
 
   if (!$("#id_active")) {
     enable($("#id_leave_date"))
+    $('#id_leave_date').datepicker("setStartDate", getStartDate())
   }
 });
 
@@ -28,6 +29,7 @@ $("#id_active").on('click', function() {
   if (this.checked) {
     disable($("#id_leave_date"))
   } else {
+    $('#id_leave_date').datepicker("setStartDate", getStartDate())
     enable($("#id_leave_date"))
   }
 })

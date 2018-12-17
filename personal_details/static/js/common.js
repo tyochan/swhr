@@ -26,6 +26,7 @@ $.fn.datepicker.defaults.todayBtn = true
 $.fn.datepicker.defaults.todayHighlight = true
 $.fn.datepicker.defaults.daysOfWeekDisabled = '06'
 $.fn.datepicker.defaults.datesDisabled = HOLIDAYS
+$.fn.datepicker.defaults.enableOnReadonly = false
 
 // $().ready(function() {
 // Check if holidays are weekends
