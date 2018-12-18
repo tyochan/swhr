@@ -5,12 +5,17 @@ from leave_records.models import Leave
 from personal_details.models import Employee
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from . import forms
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from django_ajax.decorators import ajax
 import datetime
 import calendar
 from django.db.models import Q
 from swhr import strings
+from swhr.utils import render_pdf_view
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import tempfile
 
 # Create your views here.
 
@@ -23,15 +28,22 @@ class IndexView(generic.ListView):
         return Payment.objects.all()
 
 
-class PaymentCreateView(generic.CreateView):
+class PaymentCreateView(CreateView):
     form_class = forms.PaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
 
+class PaymentDetailView(UpdateView):
+    form_class = forms.PaymentDetailForm
+    model = Payment
+    template_name = 'form_payment.html'
+    success_url = reverse_lazy('payroll:index')
+
+
 @ajax
-def getBasicSalary(request):
+def calculateSalary(request):
     employee = Employee.objects.get(staff_no=request.GET['staff_no'])
 
     print('Salary: (Period End Date - Period Join/Start Date - Leave Spend + 1) / Period Max Days * Basic Salary')
@@ -129,3 +141,28 @@ def getBasicSalary(request):
 
     net_pay = salary - mpf_employee
     return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer, 'mpf_employee': mpf_employee, 'net_pay': net_pay}
+
+# -*- coding: utf-8 -*-
+
+
+def generatePDF(request):
+    """Generate pdf."""
+    # Model data
+    #people = Person.objects.all().order_by('last_name')
+
+    # Rendered
+    html_string = render_to_string('payslip_pdf.html', {'title': "Title"})
+    html = HTML(string=html_string)
+    result = html.write_pdf()
+
+    # Creating http response
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=test.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    with tempfile.NamedTemporaryFile(delete=True) as output:
+        output.write(result)
+        output.flush()
+        output = open(output.name, 'r')
+        response.write(output.read())
+
+    return response

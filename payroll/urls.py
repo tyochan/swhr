@@ -10,8 +10,11 @@ urlpatterns = [
     # /payroll/string/
     path('create', views.PaymentCreateView.as_view(), name='create_payment'),
     # path('update/<int:pk>', views.LeaveUpdateView.as_view(), name='update_leave'),
-    # path('detail/<int:pk>', views.LeaveDetailView.as_view(), name='detail_leave'),
+    path('detail/<int:pk>', views.PaymentDetailView.as_view(), name='detail_payment'),
 
     # AJAX
-    path('ajax/getSalary', views.getBasicSalary, name='get_basic_salary')
+    path('ajax/getSalary', views.calculateSalary, name='calculate_salary'),
+
+    # Method
+    path('generatePDF', views.generatePDF, name='generate_pdf'),
 ]

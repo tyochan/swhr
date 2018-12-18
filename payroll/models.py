@@ -18,3 +18,6 @@ class Payment(models.Model):
     net_pay = models.FloatField()
     # status = models.CharField(
     #     max_length=10, choices=choices.STATUS_CHOICES, default='PD', blank=True)
+
+    def __str__(self):
+        return '%s to %s, %s, $%s' % (self.period_start, self.period_end, self.employee, self.net_pay)

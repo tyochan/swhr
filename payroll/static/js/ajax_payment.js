@@ -1,5 +1,4 @@
 function calculateSalary() {
-  var form = $(this).closest("form");
   $.ajax({
     url: "ajax/getSalary",
     data: {

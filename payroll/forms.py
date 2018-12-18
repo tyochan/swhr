@@ -109,7 +109,8 @@ class PaymentUpdateForm(PaymentForm):
 class PaymentDetailForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(PaymentDetailForm, self).__init__(*args, **kwargs)
-        self.helper.layout.pop(-2)
-
+        self.helper.layout[1].pop(0)
+        self.helper.layout[-2] = HTML(
+            '<a href="{% url \'payroll:generate_pdf\' %}" target="_blank" class="btn btn-outline-info" role="button">Export PDF</a> ')
         for name, field in self.fields.items():
             field.disabled = True

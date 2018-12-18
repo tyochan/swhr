@@ -59,7 +59,7 @@ class Employee(models.Model):
         return reverse('personal_details:index')  # , kwargs={'pk': self.pk}
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return '%s %s' % (self.last_name, self.first_name)
     # c_family_name = models.CharField(max_length = 30)
     # c_name = models.CharField(max_length = 30)
 

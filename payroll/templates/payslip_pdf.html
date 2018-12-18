@@ -1,0 +1,115 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+
+<head>
+  <title>{{title}}</title>
+  <style>
+    @page {
+      size: a4 portrait;
+      margin: 2cm;
+
+      @frame header_frame {
+        /* Static Frame */
+        -pdf-frame-content: header_content;
+        left: 50pt;
+        width: 495pt;
+        top: 50pt;
+        height: 100pt;
+        /* -pdf-frame-border: 1; */
+      }
+
+      @frame content_frame {
+        left: 50pt;
+        width: 495pt;
+        top: 150pt;
+        height: 600pt;
+        /* -pdf-frame-border: 1; */
+        /* for debugging the layout */
+      }
+
+      @frame footer_frame {
+        /* Another static Frame */
+        -pdf-frame-border: 1;
+        -pdf-frame-content: footer_content;
+        left: 50pt;
+        width: 495pt;
+        top: 750pt;
+        height: 50pt;
+      }
+    }
+
+    title {
+      font-size: 30px;
+      font-weight: 100;
+      padding: 10px 20px 0px 20px;
+    }
+
+    body {
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    img {
+      height: 40px;
+      width: 50px;
+    }
+
+    .payslip {
+      font-size: 22px;
+      text-align: center;
+      margin-top: 40px;
+      border-bottom: 2px solid #000;
+    }
+
+    .header {
+      font-weight: bold;
+    }
+
+    /* Create two equal columns that floats next to each other */
+    .col {
+      float: left;
+      width: 45%;
+      padding: 10px;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Content for Static Frame 'header_frame' -->
+  <div id="header_content">
+    <img src="logo_g.png" alt="SkyWiseHR" id="logo">
+    <div class="header">
+      SKYWISE HONG KONG LIMITED<br>
+      PRIVATE AND CONFIDENTIAL
+    </div>
+    <div class="payslip">
+      Payslip
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="row">
+      <div class="col">
+        Employee ID:
+      </div>
+      <div class="col">
+        Company:
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Content for Static Frame 'footer_frame' -->
+  <div id="footer_content">
+  </div>
+</body>
+
+</html>

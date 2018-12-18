@@ -111,8 +111,8 @@ class LeaveCreateForm(LeaveForm):
 class LeaveUpdateForm(LeaveForm):
     def __init__(self, *args, **kwargs):
         super(LeaveUpdateForm, self).__init__(*args, **kwargs)
-        self.helper.filter(Submit).wrap(
-            Submit,  'Approve', css_class="btn-outline-primary")
+        self.helper.layout[-2] = Submit('approve',
+                                        'Approve', css_class="btn-outline-primary")
         self.helper.layout.insert(-1, Submit('reject',
                                              'Reject', css_class='btn-outline-danger'))
 

@@ -21,7 +21,7 @@
       <td>{{p.employee.last_name|add:" "|add:p.employee.first_name}}</td>
       <td>{{p.method}}</td>
       <td>{{p.net_pay}}</td>
-      <td></td>
+      <td><a href="{% url 'payroll:detail_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a></td>
     </tr>
     {% endfor %}
   </tbody>
