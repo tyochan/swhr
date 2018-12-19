@@ -1,5 +1,5 @@
 from django.urls import reverse_lazy
-from django.views import generic
+from django.views.generic import ListView, DetailView
 from .models import Payment
 from leave_records.models import Leave
 from personal_details.models import Employee
@@ -11,16 +11,16 @@ import datetime
 import calendar
 from django.db.models import Q
 from swhr import strings
-from swhr.utils import render_pdf_view
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django_weasyprint import WeasyTemplateResponseMixin
 from weasyprint import HTML
 import tempfile
 
 # Create your views here.
 
 
-class IndexView(generic.ListView):
+class IndexView(ListView):
     template_name = 'payroll.html'
     context_object_name = 'payments'
 
@@ -40,6 +40,14 @@ class PaymentDetailView(UpdateView):
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+
+
+class PaymentPDFView(DetailView, WeasyTemplateResponseMixin):
+    model = Payment
+    context_object_name = 'p'
+    template_name = 'payslip_pdf.html'
+    pdf_filename = 'Test.pdf'
+    pdf_attachment = False
 
 
 @ajax
@@ -141,28 +149,3 @@ def calculateSalary(request):
 
     net_pay = salary - mpf_employee
     return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer, 'mpf_employee': mpf_employee, 'net_pay': net_pay}
-
-# -*- coding: utf-8 -*-
-
-
-def generatePDF(request):
-    """Generate pdf."""
-    # Model data
-    #people = Person.objects.all().order_by('last_name')
-
-    # Rendered
-    html_string = render_to_string('payslip_pdf.html', {'title': "Title"})
-    html = HTML(string=html_string)
-    result = html.write_pdf()
-
-    # Creating http response
-    response = HttpResponse(content_type='application/pdf;')
-    response['Content-Disposition'] = 'inline; filename=test.pdf'
-    response['Content-Transfer-Encoding'] = 'binary'
-    with tempfile.NamedTemporaryFile(delete=True) as output:
-        output.write(result)
-        output.flush()
-        output = open(output.name, 'r')
-        response.write(output.read())
-
-    return response

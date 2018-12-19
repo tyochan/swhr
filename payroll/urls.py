@@ -16,5 +16,5 @@ urlpatterns = [
     path('ajax/getSalary', views.calculateSalary, name='calculate_salary'),
 
     # Method
-    path('generatePDF', views.generatePDF, name='generate_pdf'),
+    path('generatePDF/<int:pk>', views.PaymentPDFView.as_view(), name='generate_pdf'),
 ]

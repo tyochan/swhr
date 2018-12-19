@@ -33,6 +33,11 @@ $().ready(function() {
     $('#id_period_start').datepicker("setEndDate", getEndDate())
     $('#id_period_end').datepicker("setStartDate", getStartDate())
   }
+
+  array = location.pathname.split("/")
+  id = array[array.length - 1]
+  // Change export url
+  $('#id_export_pdf').attr("href", "/payroll/generatePDF/" + id)
 });
 
 // start_date change
