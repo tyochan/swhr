@@ -64,3 +64,17 @@ $('#id_period_end').datepicker().on("changeDate", function(e) {
 $('#id_employee').change(function() {
   calculateSalary()
 })
+
+$('.payment').change(function() {
+  total = parseInt($('#id_basic_salary').val()) + parseInt($('#id_allowance').val()) + parseInt($('#id_other_payments').val())
+  $('#id_total_payments').val(total.toFixed(2))
+  net_pay = parseInt($('#id_total_payments').val() - parseInt($('#id_total_deductions').val()))
+  $('#id_net_pay').val(net_pay.toFixed(2))
+})
+
+$('.deduction').change(function() {
+  total = parseInt($('#id_mpf_employee').val()) + parseInt($('#id_np_leave').val()) + parseInt($('#id_other_deductions').val())
+  $('#id_total_deductions').val(total.toFixed(2))
+  net_pay = parseInt($('#id_total_payments').val() - parseInt($('#id_total_deductions').val()))
+  $('#id_net_pay').val(net_pay.toFixed(2))
+})

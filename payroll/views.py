@@ -25,7 +25,7 @@ class IndexView(ListView):
     context_object_name = 'payments'
 
     def get_queryset(self):
-        return Payment.objects.all()
+        return Payment.objects.all().order_by('period_start')
 
 
 class PaymentCreateView(CreateView):
@@ -46,7 +46,7 @@ class PaymentPDFView(DetailView, WeasyTemplateResponseMixin):
     model = Payment
     context_object_name = 'p'
     template_name = 'payslip_pdf.html'
-    pdf_filename = 'Test.pdf'
+    pdf_filename = 'payslip.pdf'
     pdf_attachment = False
 
 
@@ -76,7 +76,7 @@ def calculateSalary(request):
 
     # This month
     leaves = Leave.objects.all().filter(employee=employee,
-                                        start_date__lte=period_end, end_date__gte=period_start).exclude(type__in=('AL', 'SL'))
+                                        start_date__lte=period_end, end_date__gte=period_start, type='NL').exclude(status='RE')
 
     for l in leaves:
         # Limit leave in within period
@@ -107,6 +107,7 @@ def calculateSalary(request):
     print('Actual Period Work Days (with holidays and weekends) = %s' % period_work)
     ratio = period_work / period_max
     salary = employee.salary * ratio
+    no_pay_leave = employee.salary * (period_max - period_work) / period_max
     print('Salary: %s * %s = %s' % (employee.salary, ratio, salary))
 
     # Calculate net pay and mpf
@@ -147,5 +148,9 @@ def calculateSalary(request):
         else:
             mpf_employer = salary * 0.05
 
-    net_pay = salary - mpf_employee
-    return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer, 'mpf_employee': mpf_employee, 'net_pay': net_pay}
+    total_payments = employee.salary
+    total_deductions = mpf_employee + no_pay_leave
+    net_pay = total_payments - total_deductions
+    return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer,
+            'mpf_employee': mpf_employee, 'net_pay': net_pay, 'no_pay_leave': no_pay_leave,
+            'total_payments': total_payments, 'total_deductions': total_deductions, }

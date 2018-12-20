@@ -19,6 +19,13 @@ function disable(object) {
   object.prop('disabled', true)
 }
 
+$('input').on('keydown', function(event) {
+  var x = event.which;
+  if (x === 13) {
+    this.blur();
+  }
+});
+
 // Datepicker options
 $.fn.datepicker.defaults.format = "yyyy-mm-dd"
 $.fn.datepicker.defaults.autoclose = true

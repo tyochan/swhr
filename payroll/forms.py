@@ -2,6 +2,7 @@ from django.forms import ModelForm, ValidationError
 from django import forms
 from .models import Payment
 import datetime
+import calendar
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Column
@@ -23,42 +24,59 @@ class PaymentForm(CrispyForm):
     def __init__(self, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
         self.helper.layout = Layout(
+            HTML('''<div class="form-row">'''),
+            HTML('''<div class="col-md-2">
+                <label class="col-form-label font-weight-bold text-info">General</label>
+            '''),
+            Field('employee', css_class='form-group col-md-12'),
             Row(
-                Column('employee', css_class='form-group col-md-3'),
-                Column('period_start', css_class='form-group col-md-1'),
-                Column('period_end', css_class='form-group col-md-1'),
-                Column('method', css_class='form-group col-md-1'),
+                Column('period_start', css_class='form-group col-md-6'),
+                Column('period_end', css_class='form-group col-md-6'),
                 css_class='form-row'
             ),
             Row(
-                HTML('''
-                    <div class="formColumn form-group col-md-2">
-                      <div id="" class="form-group"> <label for="" class="col-form-label  requiredField">
-                          Basic Salary</label>
-                        <div class="">
-                          <div class="input-group">
-                            <div class="input-group-prepend">
-                            <span class="input-group-text">$</span>
-                            </div>
-                            <input type="number" class="numberinput form-control" id="id_basic_salary" readonly=True>
-                          </div>
-                        </div>
-                      </div>
+                Column('pay_date', css_class='form-group col-md-6'),
+                Column('method', css_class='form-group col-md-6'),
+                css_class='form-row'
+            ),
+            PrependedText('net_pay', '$', css_class="font-weight-bold"),
+            HTML('''
+                </div>
+                <div class="col-md-9">
+                <div class="form-row">
+                <div class="col-md-1"></div>
+                    <div class="formColumn form-group col-md-3 rounded  border-success">
+                        <label class="col-form-label font-weight-bold text-success">Payments</label>
+                        '''),
+            PrependedText('basic_salary', '$', css_class="payment"),
+            PrependedText('allowance', '$', css_class="payment"),
+            PrependedText('other_payments', '$', css_class="payment"),
+            PrependedText('total_payments', '$'),
+            HTML('''
                     </div>
-                '''),
-                Column(PrependedText('mpf_employer', '$'),
-                       css_class='form-group col-md-2'),
-                Column(PrependedText('mpf_employee', '$'),
-                       css_class='form-group col-md-2'),
-                css_class='form-row'
-            ),
-            Row(
-                Column(PrependedText('net_pay', '$'),
-                       css_class="form-group col-md-2"),
-                Column('pay_date', css_class='form-group col-md-1'),
-                # Column('status', css_class="form-group col-md-2", readonly=True),
-                css_class='form-row',
-            ),
+                    <div class="col-md-1"></div>
+                    <div class="formColumn form-group col-md-3 rounded  border-danger">
+                        <label class="col-form-label font-weight-bold text-danger">Deductions</label>
+
+            '''),
+            PrependedText('mpf_employee', '$', css_class="deduction"),
+            PrependedText('np_leave', '$', css_class="deduction"),
+            PrependedText('other_deductions', '$', css_class="deduction"),
+            PrependedText('total_deductions', '$'),
+            HTML('''
+                </div>
+                <div class="col-md-1">
+                </div>
+                <div class="formColumn form-group col-md-3 rounded  border-secondary">
+                  <label class="col-form-label font-weight-bold text-secondary"> Others </label>
+            '''),
+            PrependedText('mpf_employer', '$'),
+            HTML('''
+                </div>
+                </div>
+                </div>
+                </div>
+            '''),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
             HTML(
                 '<a href="{% url \'payroll:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
@@ -77,13 +95,20 @@ class PaymentForm(CrispyForm):
         self.fields['period_end'].label = "Period End"
         self.fields['pay_date'].label = "Pay Date"
         self.fields['method'].label = "Pay Method"
+        self.fields['np_leave'].label = "No Pay Leaves"
+        self.fields['other_payments'].label = "Others"
+        self.fields['other_deductions'].label = "Others"
+        self.fields['mpf_employee'].label = "Employee MPF Contribution"
+        self.fields['mpf_employer'].label = "Employer MPF Contribution"
+        self.fields['total_payments'].label = "Total"
+        self.fields['total_deductions'].label = "Total"
 
         # Init field data
-        date = datetime.date.today()  # datetime.date(2018, 11, 18)
-        #
-        period_start = date.replace(
-            month=(date.month - 1), day=25)
-        period_end = date.replace(day=24)
+        date = datetime.date.today()  # datetime.date(2018, 12, 18)
+
+        period_start = date.replace(day=1)
+        period_end = date.replace(day=calendar.monthrange(
+            period_start.year, period_start.month)[1])
         self.fields['period_start'].initial = period_start
         self.fields['period_end'].initial = period_end
         self.fields['pay_date'].initial = date
@@ -109,7 +134,6 @@ class PaymentUpdateForm(PaymentForm):
 class PaymentDetailForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(PaymentDetailForm, self).__init__(*args, **kwargs)
-        self.helper.layout[1].pop(0)
         self.helper.layout[-2] = HTML(
             '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> ')
         for name, field in self.fields.items():

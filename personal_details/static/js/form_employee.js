@@ -18,9 +18,12 @@ $().ready(function() {
   // Initialize All Datepicker
   $(".dateinput").datepicker()
 
-  if (!$("#id_active")) {
+  $('#id_leave_date').datepicker("setStartDate", getStartDate())
+
+  if ($("#id_active").is(":checked")) {
+    disable($("#id_leave_date"))
+  } else {
     enable($("#id_leave_date"))
-    $('#id_leave_date').datepicker("setStartDate", getStartDate())
   }
 });
 

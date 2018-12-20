@@ -3,7 +3,7 @@
 <html>
 
 <head>
-  <title>Test</title>
+  <title>Payslip</title>
   <!-- CSS -->
   <!-- <link rel="stylesheet" href="{% static 'css/bootstrap-4.1.3.css' %}">
   <link rel="stylesheet" href="{% static 'css/bootstrap-print.css' %}"> -->
@@ -141,8 +141,9 @@
         <td>{{p.employee.bank_acc}}</td>
       </tr>
     </table>
+    {% for i in 'xx' %}
     <br>
-    <br>
+    {% endfor %}
     <table class="table2 border-bottom">
       <tr>
         <td><u>Payments</u></td>
@@ -157,10 +158,28 @@
         <td class="text-right">{{p.mpf_employee|floatformat:2}}</td>
       </tr>
       <tr>
+        <td>Allowance</td>
+        <td class="text-right">{{p.allowance|floatformat:2}}</td>
+        <td>
+          {% if p.start_late %}
+          No Pay Leaves / Period Before Start
+          {% else %}
+          No Pay Leaves
+          {% endif %}
+        </td>
+        <td class="text-right">{{p.np_leave|floatformat:2}}</td>
+      </tr>
+      <tr>
+        <td>Others</td>
+        <td class="text-right">{{p.other_payments|floatformat:2}}</td>
+        <td>Others</td>
+        <td class="text-right">{{p.other_deductions|floatformat:2}}</td>
+      </tr>
+      <tr>
         <td class="text-right">Total</td>
-        <td class="text-right border-top">{{p.employee.salary|floatformat:2}}</td>
+        <td class="text-right border-top">{{p.total_payments|floatformat:2}}</td>
         <td class="text-right">Total</td>
-        <td class="text-right border-top">{{p.mpf_employee|floatformat:2}}</td>
+        <td class="text-right border-top">{{p.total_deductions|floatformat:2}}</td>
       </tr>
       <tr>
         <td></td>
@@ -177,7 +196,11 @@
       <tr>
         <td>Employer Contribution</td>
         <td>
+          {% if p.third_month %}
+          ({{p.employee.join_date|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}})
+          {% else %}
           ({{p.period_start|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}})
+          {% endif %}
         </td>
         <td class="text-right">{{p.mpf_employer|floatformat:2}}</td>
       </tr>
@@ -187,7 +210,7 @@
         <td class="text-right">{{p.mpf_employee|floatformat:2}}</td>
       </tr>
     </table>
-    {% for i in 'xxxxxxxxxxxx' %}
+    {% for i in 'xxxxxxx' %}
     <br>
     {% endfor %}
     <table class="table4">

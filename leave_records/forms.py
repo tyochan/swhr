@@ -82,28 +82,25 @@ class LeaveCreateForm(LeaveForm):
                 if data["spend"] > data["employee"].annual_leave:
                     raise ValidationError(
                         'Leave exceeds your quota: %(quota)s days.', params={'quota': data["employee"].annual_leave})
-
-            leaves = Leave.objects.exclude(
-                status="RE").filter(employee=data["employee"])
+            leaves = Leave.objects.filter(employee=data["employee"], start_date__lte=data["end_date"], end_date__gte=data["start_date"]).exclude(
+                status="RE")
             for l in leaves:
-                # Check if date period already in leaves
-                if l.start_date <= data["end_date"] and l.end_date >= data["start_date"]:
-                    # Leave starts and ends on same day
-                    if "day_type" in data:
-                        if data["day_type"] == 'HD':  # Half day leaves
-                            count = Leave.objects.exclude(
-                                status="RE").filter(
-                                start_date=data["start_date"]).count()
-                            if count >= 2:
-                                raise ValidationError(
-                                    'Leaves already applied for: %(date)s', params={'date': data["start_date"]}
-                                )
-                        else:  # Full day leaves
+                # Leave starts and ends on same day
+                if "day_type" in data:
+                    if data["day_type"] == 'HD':  # Half day leaves
+                        count = Leave.objects.exclude(
+                            status="RE").filter(
+                            start_date=data["start_date"]).count()
+                        if count >= 2:
                             raise ValidationError(
-                                'Leave overlaps with applied leave: %(leave)s', params={'leave': l})
+                                'Leaves already applied for: %(date)s', params={'date': data["start_date"]}
+                            )
                     else:  # Full day leaves
                         raise ValidationError(
                             'Leave overlaps with applied leave: %(leave)s', params={'leave': l})
+                else:  # Full day leaves
+                    raise ValidationError(
+                        'Leave overlaps with applied leave: %(leave)s', params={'leave': l})
 
         return super().clean()
 

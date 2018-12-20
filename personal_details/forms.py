@@ -1,4 +1,4 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, ValidationError
 from django import forms
 from .models import Employee
 
@@ -71,7 +71,15 @@ class EmployeeForm(CrispyForm):
         self.fields['bank_acc'].label = "Bank Account"
         self.fields['annual_leave'].label = "Annual Leave"
 
-        self.fields['leave_date'].disabled = True
+    def clean(self):
+        data = super().clean()
+        print(data)
+        if not data['active']:
+            if not data['leave_date']:
+                raise ValidationError(
+                    'Leave date is needed if staff is not active.')
+
+        return super().clean()
 
 
 class EmployeeUpdateForm(EmployeeForm):

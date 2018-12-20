@@ -73,7 +73,7 @@ $().ready(function() {
     $('#id_end_date').datepicker("setStartDate", getStartDate())
 
     // If start_date = end_date
-    if (getStartDateText() === getEndDateText()) {
+    if (getStartDateText() === getEndDateText() && !$('#id_employee').prop('disabled')) {
       enable($("#id_day_type"))
     } else {
       disable($("#id_day_type"))
