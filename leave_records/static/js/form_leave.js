@@ -59,7 +59,7 @@ $().ready(function() {
   $(".dateinput").datepicker()
 
   // Initialize  picking date
-  var endDate = new Date()
+  endDate = new Date()
   endDate.setMonth(endDate.getMonth() + 3)
   $(".dateinput").datepicker("setEndDate", endDate)
 

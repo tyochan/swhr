@@ -6,3 +6,25 @@
 .nav-link{
   font-size: 1.25em;
 }
+
+.table {
+  table-layout: fixed;
+}
+
+.table tr{
+   height: 10px;
+}
+
+.table td{
+   padding: 0  0  0 .75rem;
+   vertical-align: middle;
+}
+
+.footer {
+  position: static;
+  vertical-align: middle;
+}
+
+body {
+  overflow-y:hidden;
+}

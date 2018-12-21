@@ -1,13 +1,15 @@
+# Models
 from django.db import models
+
+# Utils
 import uuid
-import datetime
+from . import choices
 from django.urls import reverse
 from django.utils import timezone
-from . import choices
 
 default_address = 'Unit 801-802, 8/F C-Bons International Centre, 108 Wai Yip Street, Kwun Tong, Kowloon, Hong Kong'
 default_date = timezone.now()
-default_salary = 20000
+default_salary = 0
 default_phone_no = '+852-12345678'
 default_annual_leave = 15
 default_email = 'test@81.com'
@@ -50,7 +52,6 @@ class Employee(models.Model):
     title = models.CharField(max_length=10, default=default_title, blank=True)
     active = models.BooleanField(default=True)
     leave_date = models.DateField(null=True, blank=True)
-    # office_phone_no = models.CharField(max_length = 20)
 
     class Meta:
         ordering = ['last_name']
@@ -59,18 +60,4 @@ class Employee(models.Model):
         return reverse('personal_details:index')  # , kwargs={'pk': self.pk}
 
     def __str__(self):
-        return '%s %s' % (self.last_name, self.first_name)
-    # c_family_name = models.CharField(max_length = 30)
-    # c_name = models.CharField(max_length = 30)
-
-    # nationality = models.CharField(max_length = 30)
-    # birth_date = models.DateField()
-    # marital_status = models.CharField(max_length = 20)
-    # supervisor = models.CharField()
-
-# class Spouse(models.Model):
-    # employee_id = models.ForeignKey(Employee, on_delete = models.CASCADE)
-    # first_name = models.CharField(max_length = 30)
-    # middle_name = models.CharField(max_length = 30)
-    # last_name = models.CharField(max_length = 30)
-    # phone_no = models.CharField(max_length = 20)
+        return '%s %s %s' % (self.staff_no, self.last_name, self.first_name)

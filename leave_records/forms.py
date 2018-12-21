@@ -1,26 +1,22 @@
-from django.forms import ModelForm, ValidationError
-from django import forms
+from django.forms import ModelForm, ValidationError, DateInput, Textarea
+
+# Models
 from .models import Leave
 
+# Crispy Forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Column
-from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
+from crispy_forms.layout import Layout, Submit, HTML, Row, Field, Column
+from crispy_forms.bootstrap import AppendedText, PrependedText
 
 
-class CrispyForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(CrispyForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-
-
-class LeaveForm(CrispyForm):
-
+class LeaveForm(ModelForm):
     class Meta:
         model = Leave
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(LeaveForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Row(
                 Column('employee', css_class='form-group col-md-3'),
@@ -48,24 +44,19 @@ class LeaveForm(CrispyForm):
         )
 
         # Modify widget
-        self.fields['start_date'].widget = forms.DateInput(
+        self.fields['start_date'].widget = DateInput(
             attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
-        self.fields['end_date'].widget = forms.DateInput(
+        self.fields['end_date'].widget = DateInput(
             attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
-        # self.fields['from_time'].widget = forms.TimeInput(
-        #     format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
-        # self.fields['to_time'].widget = forms.TimeInput(
-        #     format='%H:%M', attrs={'class': 'timepicker', 'onkeydown': 'return false', 'autocomplete': 'off'})
-        self.fields['remarks'].widget = forms.Textarea()
+        self.fields['remarks'].widget = Textarea()
 
         # Rename display fields' names
         self.fields['start_date'].label = "Start Date"
         self.fields['end_date'].label = "End Date"
-        # self.fields['from_time'].label = "From Time"
-        # self.fields['to_time'].label = "To Time"
         self.fields['spend'].label = "Days Spend"
         self.fields['day_type'].label = "Day Type"
 
+        # Avaliabiility of field (can't enable by js if disabled)
         self.fields['status'].disabled = True
 
 
@@ -75,15 +66,15 @@ class LeaveCreateForm(LeaveForm):
 
     def clean(self):
         data = super().clean()
-        print(data)
         if data["spend"]:
             # Check if leave exists quota
             if data["type"] == 'AL':
                 if data["spend"] > data["employee"].annual_leave:
                     raise ValidationError(
-                        'Leave exceeds your quota: %(quota)s days.', params={'quota': data["employee"].annual_leave})
-            leaves = Leave.objects.filter(employee=data["employee"], start_date__lte=data["end_date"], end_date__gte=data["start_date"]).exclude(
-                status="RE")
+                        'Leave exceeds current quota [%(quota)s days].', params={'quota': data["employee"].annual_leave})
+            leaves = Leave.objects.filter(employee=data["employee"],
+                                          start_date__lte=data["end_date"],
+                                          end_date__gte=data["start_date"]).exclude(status="RE")
             for l in leaves:
                 # Leave starts and ends on same day
                 if "day_type" in data:
@@ -93,16 +84,15 @@ class LeaveCreateForm(LeaveForm):
                             start_date=data["start_date"]).count()
                         if count >= 2:
                             raise ValidationError(
-                                'Leaves already applied for: %(date)s', params={'date': data["start_date"]}
+                                'Leaves applied for [%(date)s]', params={'date': data["start_date"]}
                             )
                     else:  # Full day leaves
                         raise ValidationError(
-                            'Leave overlaps with applied leave: %(leave)s', params={'leave': l})
+                            'Leave overlapping with [%(leave)s]', params={'leave': l})
                 else:  # Full day leaves
                     raise ValidationError(
-                        'Leave overlaps with applied leave: %(leave)s', params={'leave': l})
-
-        return super().clean()
+                        'Leave overlapping with [%(leave)s]', params={'leave': l})
+        return data
 
 
 class LeaveUpdateForm(LeaveForm):
@@ -120,7 +110,7 @@ class LeaveUpdateForm(LeaveForm):
 class LeaveDetailForm(LeaveForm):
     def __init__(self, *args, **kwargs):
         super(LeaveDetailForm, self).__init__(*args, **kwargs)
-        self.helper.layout.pop(-2)
+        self.helper.layout.pop(-2)  # pop save button
 
         for name, field in self.fields.items():
             field.disabled = True

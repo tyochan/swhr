@@ -1,17 +1,33 @@
 {% extends "base.html" %}
-
 {% block content %}
-{% if form.errors %}
-<h1>ERROR</h1>
-{% endif %}
-<table class="table table-striped table-hover text-center">
+<table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th>Start Date</th>
-      <th>End Date</th>
-      <th>Employee</th>
-      <th>Leave Type</th>
-      <th>Status</th>
+      <th>
+        Start Date
+        <a href="?order_by=start_date" class="fas fa-caret-up"></a>
+        <a href="?order_by=-start_date" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        End Date
+        <a href="?order_by=end_date" class="fas fa-caret-up"></a>
+        <a href="?order_by=-end_date" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Employee
+        <a href="?order_by=employee" class="fas fa-caret-up"></a>
+        <a href="?order_by=-employee" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Leave Type
+        <a href="?order_by=type" class="fas fa-caret-up"></a>
+        <a href="?order_by=-type" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Status
+        <a href="?order_by=status" class="fas fa-caret-up"></a>
+        <a href="?order_by=-status" class="fas fa-caret-down"></a>
+      </th>
       <th>Action</th>
     </tr>
   </thead>
@@ -34,5 +50,9 @@
     {% endfor %}
   </tbody>
 </table>
-<a href="{% url 'leave_records:create_leave' %}" class="btn btn-primary" role="button">Add New Leave</a>
+
+<div class="footer">
+  {% include "pagination.html" %}
+  <a href="{% url 'leave_records:create_leave' %}" class="btn btn-primary" role="button">Add New Leave</a>
+</div>
 {% endblock %}

@@ -11,9 +11,10 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.css">
-  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/timepicker@1.11.14/jquery.timepicker.min.css" /> -->
-
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block css %}{% endblock %}
+
+  <!-- Favicon -->
   <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}" />
   <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon" />
 
@@ -25,22 +26,19 @@
   <nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top">
     <a class="navbar-brand" href="{% url 'personal_details:index' %}"><img src="{% static 'images/logo_g.png' %}" alt="SkyWiseHR" id="logo"></a>
     <ul class="navbar-nav nav">
-      <li class="nav-item">
+      <li class="nav-item {% if request.resolver_match.view_name == 'personal_details:index' %}active{% endif %}">
         <a class="nav-link" href="{% url 'personal_details:index' %}">
           <!-- <i class="fas fa-address-book"></i> -->
           Personal Details</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item {% if request.resolver_match.view_name == 'leave_records:index' %}active{% endif %}">
         <a class="nav-link" href="{% url 'leave_records:index' %}">
-          <!-- <i class="fas fa-address-book"></i> -->
           Leave Records</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item {% if request.resolver_match.view_name == 'payroll:index' %}active{% endif %}">
         <a class="nav-link" href="{% url 'payroll:index' %}">
-          <!-- <i class="fas fa-address-book"></i> -->
           Payroll
         </a>
-
     </ul>
   </nav>
   {% endblock %}
@@ -49,13 +47,11 @@
     {% block content %}Temporary content{% endblock %}
   </div>
 
-  <!-- Optional JavaScript -->
   <!-- jQuery first, then Popper.js, then Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js" integrity="sha384-vtZXrrXR60MGoprJb7ApH4t3Y59IhePhwtXXmbqg//ha9LHwSo3QCNR6XvF5oXVM" crossorigin="anonymous"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/timepicker@1.11.14/jquery.timepicker.min.js" integrity="sha384-54QmKQTy36sR8I4teMrIk5FQtlHuH6o5HBu+KydJvg7h9HlYephLwRAZS8mEa3DI" crossorigin="anonymous"></script> -->
   <script src="{% static 'js/common.js' %}"></script>
   {% block javascript %}{% endblock %}
 </body>

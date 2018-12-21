@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<form action="" method="post" {% block form_atr %}{% endblock %}>
+<form method="post" {% block form_atr %}{% endblock %}>
   {% crispy form form.helper %}
 </form>
 {% endblock %}

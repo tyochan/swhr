@@ -1,6 +1,8 @@
+# Models
 from django.db import models
 from personal_details.models import Employee
-from leave_records.models import Leave
+
+# Utils
 from . import choices
 
 # Create your models here.
@@ -30,14 +32,12 @@ class Payment(models.Model):
     mpf_employee = models.FloatField()
 
     net_pay = models.FloatField()
-    # status = models.CharField(
-    #     max_length=10, choices=choices.STATUS_CHOICES, default='PD', blank=True)
 
     class meta:
         ordering = ['-period_start']
 
     def __str__(self):
-        return '%s to %s, %s, $%s' % (self.period_start, self.period_end, self.employee, self.net_pay)
+        return '%s: %s to %s of $%s' % (self.employee, self.period_start, self.period_end, self.net_pay)
 
     @property
     def third_month(self):

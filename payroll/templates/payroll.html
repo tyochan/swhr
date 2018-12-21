@@ -1,16 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% if form.errors %}
-<h1>ERROR</h1>
-{% endif %}
-<table class="table table-striped table-hover text-center">
+<table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th>Pay Period</th>
-      <th>Employee</th>
-      <th>Pay Method</th>
-      <th>Pay Amount ($)</th>
+      <th>
+        Pay Period
+        <a href="?order_by=period_start" class="fas fa-caret-up"></a>
+        <a href="?order_by=-period_start" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Employee
+        <a href="?order_by=employee" class="fas fa-caret-up"></a>
+        <a href="?order_by=-employee" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Pay Method
+        <a href="?order_by=method" class="fas fa-caret-up"></a>
+        <a href="?order_by=-method" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Pay Amount ($)
+        <a href="?order_by=net_pay" class="fas fa-caret-up"></a>
+        <a href="?order_by=-net_pay" class="fas fa-caret-down"></a>
+      </th>
       <th>Action</th>
     </tr>
   </thead>
@@ -26,5 +39,9 @@
     {% endfor %}
   </tbody>
 </table>
-<a href="{% url 'payroll:create_payment' %}" class="btn btn-primary" role="button">Add New Payment</a>
+
+<div class="footer">
+  {% include "pagination.html" %}
+  <a href="{% url 'payroll:create_payment' %}" class="btn btn-primary" role="button">Add New Payment</a>
+</div>
 {% endblock %}

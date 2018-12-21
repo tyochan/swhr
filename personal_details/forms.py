@@ -1,19 +1,15 @@
-from django.forms import ModelForm, ValidationError
-from django import forms
+from django.forms import ModelForm, ValidationError, DateInput
+
+# Models
 from .models import Employee
 
+# Crispy Forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Column
-from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
+from crispy_forms.layout import Layout, Submit, HTML, Row, Field, Column
+from crispy_forms.bootstrap import AppendedText, PrependedText
 
 
-class CrispyForm(ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(CrispyForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-
-
-class EmployeeForm(CrispyForm):
+class EmployeeForm(ModelForm):
     class Meta:
         model = Employee
         fields = '__all__'
@@ -21,12 +17,13 @@ class EmployeeForm(CrispyForm):
 
     def __init__(self, *args, **kwargs):
         super(EmployeeForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Row(
                 Column(Field('staff_no', readonly=True),
                        css_class='form-group col-sm-1'),
-                Column('first_name', css_class='form-group col-md-2'),
                 Column('last_name', css_class='form-group col-md-2'),
+                Column('first_name', css_class='form-group col-md-2'),
                 Column('join_date', css_class='form-group col-md-1'),
                 Column('leave_date', css_class='form-group col-md-1'),
                 Column(PrependedText('active', ''),
@@ -56,9 +53,9 @@ class EmployeeForm(CrispyForm):
         )
 
         # Modify widget
-        self.fields['join_date'].widget = forms.DateInput(
+        self.fields['join_date'].widget = DateInput(
             attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
-        self.fields['leave_date'].widget = forms.DateInput(
+        self.fields['leave_date'].widget = DateInput(
             attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
 
         # Rename display fields' names
@@ -87,8 +84,3 @@ class EmployeeUpdateForm(EmployeeForm):
         super(EmployeeUpdateForm, self).__init__(*args, **kwargs)
         self.helper.filter(Submit).wrap(
             Submit, 'Update', css_class="btn-outline-primary")
-
-
-class EmployeeDeleteForm(EmployeeForm):
-    def __init__(self, *args, **kwargs):
-        super(EmployeeDeleteForm, self).__init__(*args, **kwargs)

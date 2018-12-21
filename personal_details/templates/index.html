@@ -2,12 +2,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<table class="table table-striped table-hover text-center">
+<table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th>Employee ID</th>
-      <th>Name</th>
-      <th>Date Joined</th>
+      <th>
+        Employee ID
+        <a href="?order_by=staff_no" class="fas fa-caret-up"></a>
+        <a href="?order_by=-staff_no" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Name
+        <a href="?order_by=last_name" class="fas fa-caret-up"></a>
+        <a href="?order_by=-last_name" class="fas fa-caret-down"></a>
+      </th>
+      <th>
+        Date Joined
+        <a href="?order_by=join_date" class="fas fa-caret-up"></a>
+        <a href="?order_by=-join_date" class="fas fa-caret-down"></a>
+      </th>
       <th>Action</th>
       <!-- <th></th> -->
     </tr>
@@ -21,12 +33,13 @@
       <td>
         <a href="{% url 'personal_details:update_staff' e.staff_no %}" class="btn btn-info" role="button">Edit Details</a>
       </td>
-      <!-- <td>
-        <a href="{% url 'personal_details:delete_staff' e.staff_no %}" class="btn btn-danger" role="button">Delete</a>
-      </td> -->
     </tr>
     {% endfor %}
   </tbody>
 </table>
-<a href="{% url 'personal_details:create_staff' %}" class="btn btn-primary" role="button">Add New Staff</a>
+
+<div class="footer">
+  {% include "pagination.html" %}
+  <a href="{% url 'personal_details:create_staff' %}" class="btn btn-primary" role="button">Add New Staff</a>
+</div>
 {% endblock %}
