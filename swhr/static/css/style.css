@@ -28,3 +28,11 @@
 body {
   overflow-y:hidden;
 }
+
+.card-body {
+  padding: 0.75em;
+}
+
+.card {
+  background-color: #eff0f1;
+}

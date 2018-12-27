@@ -38,6 +38,7 @@ class PaymentForm(ModelForm):
                 Column('method', css_class='form-group col-md-6'),
                 css_class='form-row'
             ),
+            Field('status', css_class='form-group col-md-12'),
             PrependedText('net_pay', '$', css_class="font-weight-bold"),
             HTML('''
                 </div>
@@ -82,11 +83,9 @@ class PaymentForm(ModelForm):
 
         # Modify widget
         self.fields['period_start'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off', 'readonly': True})
+            attrs={'readonly': True})
         self.fields['period_end'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off', 'readonly': True})
-        self.fields['pay_date'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
+            attrs={'readonly': True})
 
         # Rename display fields' names
         self.fields['period_start'].label = "Period Start"
@@ -110,6 +109,8 @@ class PaymentForm(ModelForm):
         self.fields['period_end'].initial = period_end
         self.fields['pay_date'].initial = date
 
+        self.fields['status'].disabled = True
+
 
 class PaymentCreateForm(PaymentForm):
     def __init__(self, *args, **kwargs):
@@ -131,10 +132,10 @@ class PaymentCreateForm(PaymentForm):
 class PaymentUpdateForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(PaymentUpdateForm, self).__init__(*args, **kwargs)
-        self.helper.filter(Submit).wrap(
-            Submit,  'Approve', css_class="btn-outline-primary")
-        self.helper.layout.insert(-1, Submit('reject',
-                                             'Reject', css_class='btn-outline-danger'))
+        self.helper.layout[-2] = HTML(
+            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> ')
+        self.helper.layout.insert(-1, Submit('cancel',
+                                             'Cancel', css_class='btn-outline-danger'))
 
         for name, field in self.fields.items():
             field.disabled = True
@@ -148,3 +149,11 @@ class PaymentDetailForm(PaymentForm):
 
         for name, field in self.fields.items():
             field.disabled = True
+
+
+class PaymentFinalForm(PaymentForm):
+    def __init__(self, *args, **kwargs):
+        super(PaymentFinalForm, self).__init__(*args, **kwargs)
+
+        self.fields['period_end'].widget = DateInput(
+            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})

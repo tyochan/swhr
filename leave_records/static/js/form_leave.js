@@ -55,9 +55,6 @@ function toggleDayType() {
 
 
 $().ready(function() {
-  // Initialize All Datepicker
-  $(".dateinput").datepicker()
-
   // Initialize  picking date
   endDate = new Date()
   endDate.setMonth(endDate.getMonth() + 3)

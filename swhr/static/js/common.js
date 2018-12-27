@@ -13,10 +13,15 @@ log = console.log.bind(console)
 
 function enable(object) {
   object.prop('disabled', false)
+  object.prop('readonly', false)
 }
 
 function disable(object) {
   object.prop('disabled', true)
+}
+
+function readonly(object) {
+  object.prop('readonly', true)
 }
 
 $('input').on('keydown', function(event) {
@@ -25,6 +30,10 @@ $('input').on('keydown', function(event) {
     this.blur();
   }
 });
+
+$('.dateinput').on('keydown', function(event) {
+  this.blur()
+})
 
 // Datepicker options
 $.fn.datepicker.defaults.format = "yyyy-mm-dd"
@@ -35,13 +44,17 @@ $.fn.datepicker.defaults.daysOfWeekDisabled = '06'
 $.fn.datepicker.defaults.datesDisabled = HOLIDAYS
 $.fn.datepicker.defaults.enableOnReadonly = false
 
-// $().ready(function() {
-// Check if holidays are weekends
-// for (var i in HOLIDAYS) {
-//   array = HOLIDAYS[i].split('-');
-//   date = new Date(array[0], array[1] - 1, array[2]);
-//   if (date.getDay() == 0 || date.getDay() == 6) {
-//     console.log(holidays[i]);
-//   }
-// }
-// });
+$().ready(function() {
+  // Check if holidays are weekends
+  // for (var i in HOLIDAYS) {
+  //   array = HOLIDAYS[i].split('-');
+  //   date = new Date(array[0], array[1] - 1, array[2]);
+  //   if (date.getDay() == 0 || date.getDay() == 6) {
+  //     console.log(holidays[i]);
+  //   }
+  // }
+
+  // Initialize All Datepicker
+  $(".dateinput").datepicker()
+  $(".dateinput").attr("autocomplete", "off");
+});

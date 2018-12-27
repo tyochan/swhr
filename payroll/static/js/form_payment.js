@@ -22,9 +22,6 @@ function basic_salary() {
 }
 
 $().ready(function() {
-  // Initialize All Datepicker
-  $(".dateinput").datepicker()
-
   // If no date input
   if (!getStartDate() && !getEndDate()) {
     disable($("#id_period_end"))
@@ -46,7 +43,9 @@ $().ready(function() {
   $('#id_pay_date').datepicker("setStartDate", getStartDate())
   $('#id_pay_date').datepicker("setEndDate", getEndDate())
 
-  $("#id_net_pay").prop("readonly", true);
+  readonly($("#id_net_pay"))
+  readonly($("#id_total_payments"))
+  readonly($("#id_total_deductions"))
 });
 
 // start_date change
@@ -66,7 +65,7 @@ $('#id_period_start').datepicker().on("changeDate", function(e) {
 $('#id_period_end').datepicker().on("changeDate", function(e) {
   // Set max start_date
   $('#id_period_start').datepicker("setEndDate", e.date)
-  // Calculate spend
+  calculateSalary()
 });
 
 // Employee Chosen

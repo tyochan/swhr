@@ -4,7 +4,6 @@ PAYMENT_METHOD = {
     ('Transfer', 'Transfer'),
 }
 STATUS_CHOICES = (
-    ('PD', 'PENDING'),
     ('PA', 'PAID'),
     ('CC', 'CANCELLED'),
 )

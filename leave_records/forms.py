@@ -44,10 +44,6 @@ class LeaveForm(ModelForm):
         )
 
         # Modify widget
-        self.fields['start_date'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
-        self.fields['end_date'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
         self.fields['remarks'].widget = Textarea()
 
         # Rename display fields' names

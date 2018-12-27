@@ -20,12 +20,12 @@ function calculateSalary() {
       $('#id_total_payments').val(data.total_payments.toFixed(2))
       $('#id_total_deductions').val(data.total_deductions.toFixed(2))
 
-      log("ajax success"); // another sanity check
+      log("ajax: calculate salary success"); // another sanity check
     },
 
     // handle a non-successful response
     error: function(xhr, errmsg, err) {
-      log("ajax error");
+      log("ajax: calculate salary error");
     }
   })
 }

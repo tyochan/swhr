@@ -52,12 +52,6 @@ class EmployeeForm(ModelForm):
                 '<a href="{% url \'personal_details:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>')
         )
 
-        # Modify widget
-        self.fields['join_date'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
-        self.fields['leave_date'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
-
         # Rename display fields' names
         self.fields['staff_no'].label = "Staff ID"
         self.fields['first_name'].label = "First Name"

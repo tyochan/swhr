@@ -32,6 +32,8 @@ class Payment(models.Model):
     mpf_employee = models.FloatField()
 
     net_pay = models.FloatField()
+    status = models.CharField(
+        max_length=10, choices=choices.STATUS_CHOICES, default='PA', blank=True)
 
     class meta:
         ordering = ['-period_start']
