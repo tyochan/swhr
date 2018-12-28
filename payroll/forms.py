@@ -155,5 +155,22 @@ class PaymentFinalForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(PaymentFinalForm, self).__init__(*args, **kwargs)
 
+        self.helper.layout[1].insert(1, Row(
+            HTML("""<div class="formColumn form-group col-md-6">
+                        <label class="col-form-label">Join Date</label>
+                        <input type="text" name="join_date" class="dateinput form-control" id="id_join_date" autocomplete="off" readonly>
+                    </div>
+                """),
+            HTML("""<div class="formColumn form-group col-md-6">
+                        <label class="col-form-label">Annual Leave</label>
+                        <div class="input-group">
+                            <input type="text" name="annual_leave" class="form-control" id="id_annual_leave" autocomplete="off" readonly>
+                            <div class="input-group-append"> <span class="input-group-text">Days</span> </div>
+                        </div>
+                    </div>
+                """),
+            css_class='form-row'
+        ))
+
         self.fields['period_end'].widget = DateInput(
-            attrs={'onkeydown': 'return false', 'autocomplete': 'off'})
+            attrs={'readonly': False})

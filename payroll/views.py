@@ -3,6 +3,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 
 # Models
 from .models import Payment
+from django.db.models import Q
 from leave_records.models import Leave
 from personal_details.models import Employee
 
@@ -15,11 +16,11 @@ from django.http import HttpResponseRedirect
 
 # Utils
 import datetime
+import calendar
 from swhr import strings
 from django_ajax.decorators import ajax
 from django_weasyprint import WeasyTemplateResponseMixin
-
-# Create your views here.
+from . import choices
 
 
 class IndexView(ListView):
@@ -29,11 +30,33 @@ class IndexView(ListView):
 
     def get_queryset(self):
         order_by = self.request.GET.get('order_by', '-period_start')
-        return Payment.objects.all().order_by(order_by)
+
+        # Filtering
+        staff_no = self.request.GET.get('staff_no', '')
+        name = self.request.GET.get('name', '')
+        status = self.request.GET.get('status', '')
+        print('Payment Filtering: %s %s %s' %
+              (staff_no, name, status))
+
+        return Payment.objects.order_by(order_by).filter(Q(employee__staff_no__contains=staff_no),
+                                                         Q(employee__last_name__contains=name) |
+                                                         Q(employee__first_name__contains=name),
+                                                         Q(status__contains=status),)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         context['order_by'] = self.request.GET.get('order_by', '-period_start')
+
+        # Filtering
+        context['staff_no'] = self.request.GET.get('staff_no', '')
+        context['name'] = self.request.GET.get('name', '')
+        context['status'] = self.request.GET.get('status', '')
+
+        context['status_options'] = dict((key, val)
+                                         for key, val in choices.STATUS_CHOICES)
+        context['filter'] = 'staff_no=%s&name=%s&status=%s' % (
+            context['staff_no'], context['name'], context['status'])
+
         return context
 
 
@@ -92,13 +115,13 @@ def calculateSalary(request):
         period_start[0], period_start[1], period_start[2])
     period_end = datetime.date(period_end[0], period_end[1], period_end[2])
 
-    # Max days this pay period
-    period_max = (period_end - period_start).days + 1
+    # Max days in this pay period
+    temp, period_max = calendar.monthrange(period_end.year, period_end.month)
     # First month
     if (period_end - employee.join_date).days < 32:
         period_work = (period_end - employee.join_date).days + 1
     else:
-        period_work = period_max
+        period_work = (period_end - period_start).days + 1
 
     # This month
     leaves = Leave.objects.all().filter(employee=employee,
@@ -185,13 +208,13 @@ def lastPayment(request):
         period_start[0], period_start[1], period_start[2])
     period_end = datetime.date(period_end[0], period_end[1], period_end[2])
 
-    # Max days this pay period
-    period_max = (period_end - period_start).days + 1
+    # Max days in this pay period
+    temp, period_max = calendar.monthrange(period_end.year, period_end.month)
     # First month
     if (period_end - employee.join_date).days < 32:
         period_work = (period_end - employee.join_date).days + 1
     else:
-        period_work = period_max
+        period_work = (period_end - period_start).days + 1
 
     # This month
     leaves = Leave.objects.all().filter(employee=employee,
@@ -262,6 +285,19 @@ def lastPayment(request):
     total_payments = employee.salary
     total_deductions = mpf_employee + no_pay_leave
     net_pay = total_payments - total_deductions
+
+    # Annual Leave
+    end_date = datetime.date(period_end.year, 12, 31)
+    workdays = (end_date - period_end).days
+    days_of_year = 0
+    if calendar.isleap(period_end.year):
+        days_of_year = 366
+    else:
+        days_of_year = 365
+    annual_leave = round(workdays / days_of_year * 15 * 2) / 2
+    annual_leave = employee.annual_leave - annual_leave
+
     return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer,
             'mpf_employee': mpf_employee, 'net_pay': net_pay, 'no_pay_leave': no_pay_leave,
-            'total_payments': total_payments, 'total_deductions': total_deductions, }
+            'total_payments': total_payments, 'total_deductions': total_deductions,
+            'join_date': employee.join_date, 'annual_leave': annual_leave}

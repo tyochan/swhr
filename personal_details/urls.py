@@ -10,4 +10,6 @@ urlpatterns = [
     # /personal_details/string/
     path('create', views.EmployeeCreateView.as_view(), name='create_staff'),
     path('update/<int:pk>', views.EmployeeUpdateView.as_view(), name='update_staff'),
+
+    path('ajax/getLeave', views.calculateAnnualLeave, name='calculate_leave')
 ]

@@ -36,3 +36,8 @@ $("#id_active").on('click', function() {
     enable($("#id_leave_date"))
   }
 })
+
+// Join dateinput
+$("#id_join_date").datepicker().on("changeDate", function(e) {
+  calculateAnnualLeave()
+})

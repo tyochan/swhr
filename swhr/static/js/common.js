@@ -56,5 +56,5 @@ $().ready(function() {
 
   // Initialize All Datepicker
   $(".dateinput").datepicker()
-  $(".dateinput").attr("autocomplete", "off");
+  $("input").attr("autocomplete", "off");
 });

@@ -1,5 +1,4 @@
 $.fn.datepicker.defaults.daysOfWeekDisabled = '06'
-$.fn.datepicker.defaults.datesDisabled = ''
 
 function getStartDateText() {
   return $('#id_period_start').val()
@@ -50,11 +49,8 @@ $().ready(function() {
 
 // start_date change
 $('#id_period_start').datepicker().on("changeDate", function(e) {
-  // Set min end_date
-  $('#id_period_end').datepicker("setStartDate", e.date)
-
   // If has end_date
-  if ($('#id_period_end').val()) {
+  if (getEndDateText()) {
     // Calculate payment
   } else {
     enable($("#id_period_end"))
@@ -63,14 +59,16 @@ $('#id_period_start').datepicker().on("changeDate", function(e) {
 
 // end_date change
 $('#id_period_end').datepicker().on("changeDate", function(e) {
-  // Set max start_date
-  $('#id_period_start').datepicker("setEndDate", e.date)
-  calculateSalary()
-});
+  if ($('#id_employee').val()) {
+    calculateSalary()
+  }
+})
 
 // Employee Chosen
 $('#id_employee').change(function() {
-  calculateSalary()
+  if ($(this).val()) {
+    calculateSalary()
+  }
 })
 
 $(':input[type=number]').change(function() {

@@ -11,12 +11,13 @@
   table-layout: fixed;
 }
 
-.table tr{
-   height: 10px;
+.table td{
+  padding: 0 0 0 .75rem;
+  vertical-align: middle;
 }
 
-.table td{
-   padding: 0  0  0 .75rem;
+.table th{
+   padding: .75rem;
    vertical-align: middle;
 }
 
@@ -30,7 +31,7 @@ body {
 }
 
 .card-body {
-  padding: 0.75em;
+  padding: 0.5em;
 }
 
 .card {

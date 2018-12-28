@@ -78,3 +78,5 @@ class EmployeeUpdateForm(EmployeeForm):
         super(EmployeeUpdateForm, self).__init__(*args, **kwargs)
         self.helper.filter(Submit).wrap(
             Submit, 'Update', css_class="btn-outline-primary")
+
+        self.fields['join_date'].disabled = True
