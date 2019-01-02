@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'personal_details',
     'leave_records',
     'payroll',
-    'payroll.templatetags',
     'crispy_forms',
     'django_ajax',
     'django.contrib.admin',

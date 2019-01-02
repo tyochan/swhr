@@ -22,10 +22,10 @@
       </select>
     </div>
     <div class="col-xs-1">
-      <select class="form-control" id="id_last" name="last">
+      <select class="form-control" id="id_is_last" name="is_last">
         <option value='' disabled selected>Payment Type</option>
-        {% for key, val in last_options.items %}
-        {% if last == key %}
+        {% for key, val in is_last_options.items %}
+        {% if is_last == key %}
         <option value='{{key}}' selected>{{val}}</option>
         {% else %}
         <option value='{{key}}'>{{val}}</option>
@@ -81,7 +81,7 @@
         <td>{{p.net_pay}}</td>
         <td>{{p.get_status_display}}</td>
         <td>
-          {% if p.last %}
+          {% if p.is_last %}
           {% if p.status == 'CC'%}
           <a href="{% url 'payroll:detail_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% else %}

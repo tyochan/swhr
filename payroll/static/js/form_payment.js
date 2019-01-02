@@ -40,6 +40,8 @@ $().ready(function() {
   if (!$('#id_employee').val()) {
     $('.payment').val((0).toFixed(2))
     $('.deduction').val((0).toFixed(2))
+  } else {
+    calculateSalary()
   }
 
   $('#id_pay_date').datepicker("setStartDate", getStartDate())

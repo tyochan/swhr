@@ -89,7 +89,7 @@ class PaymentForm(ModelForm):
                 </div>
             </div>
             '''),
-            Field('last'),
+            Field('is_last'),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
             HTML(
                 '<a href="{% url \'payroll:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
@@ -102,7 +102,7 @@ class PaymentForm(ModelForm):
             attrs={'readonly': True})
         self.fields['leaves_unused'].widget = HiddenInput()
         self.fields['leaves_compensation'].widget = HiddenInput()
-        self.fields['last'].widget = HiddenInput()
+        self.fields['is_last'].widget = HiddenInput()
 
         # Rename display fields' names
         self.fields['period_start'].label = "Period Start"
@@ -169,13 +169,9 @@ class PaymentDetailForm(PaymentForm):
             field.disabled = True
 
 
-class LastPaymentCreateForm(PaymentCreateForm):
-    class Meta:
-        model = Payment
-        fields = '__all__'
-
+class LastPaymentForm(PaymentForm):
     def __init__(self, *args, **kwargs):
-        super(LastPaymentCreateForm, self).__init__(*args, **kwargs)
+        super(LastPaymentForm, self).__init__(*args, **kwargs)
 
         self.helper.layout[2].insert(0, HTML("""
                     <div class="formColumn form-group col-md-6">
@@ -190,13 +186,32 @@ class LastPaymentCreateForm(PaymentCreateForm):
         self.fields['leaves_unused'].widget = NumberInput()
         self.fields['leaves_compensation'].widget = NumberInput()
 
-        self.fields['last'].initial = True
+        self.fields['is_last'].initial = True
 
         self.fields['leaves_unused'].label = "Leaves Unused"
         self.fields['leaves_compensation'].label = "Leaves Compensation"
 
 
-class LastPaymentUpdateForm(LastPaymentCreateForm):
+class LastPaymentCreateForm(LastPaymentForm):
+    def __init__(self, *args, **kwargs):
+        super(LastPaymentCreateForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        data = super().clean()
+        print(data)
+        # Check for overlapping payment
+        payment = Payment.objects.filter(employee=data['employee'],
+                                         period_start__lte=data['period_end'],
+                                         period_end__gte=data['period_start'])
+        print(payment)
+        if (payment):
+            raise ValidationError(
+                'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
+
+        return data
+
+
+class LastPaymentUpdateForm(LastPaymentForm):
     def __init__(self, *args, **kwargs):
         super(LastPaymentUpdateForm, self).__init__(*args, **kwargs)
         self.helper.layout[-2] = HTML(

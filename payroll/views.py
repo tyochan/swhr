@@ -35,15 +35,15 @@ class IndexView(ListView):
         staff_no = self.request.GET.get('staff_no', '')
         name = self.request.GET.get('name', '')
         status = self.request.GET.get('status', '')
-        last = bool(self.request.GET.get('last', ''))
+        is_last = bool(self.request.GET.get('is_last', ''))
         print('Payment Filtering: %s %s %s %s' %
-              (staff_no, name, status, last))
+              (staff_no, name, status, is_last))
 
         return Payment.objects.order_by(order_by).filter(Q(employee__staff_no__contains=staff_no),
                                                          Q(employee__last_name__contains=name) |
                                                          Q(employee__first_name__contains=name),
                                                          Q(status__contains=status),
-                                                         Q(last=last),)
+                                                         Q(is_last=is_last),)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -53,14 +53,14 @@ class IndexView(ListView):
         context['staff_no'] = self.request.GET.get('staff_no', '')
         context['name'] = self.request.GET.get('name', '')
         context['status'] = self.request.GET.get('status', '')
-        context['last'] = self.request.GET.get('last', '')
+        context['is_last'] = self.request.GET.get('is_last', '')
 
-        context['last_options'] = dict(
+        context['is_last_options'] = dict(
             {'': 'Monthly Payment', 'True': 'Last Payment'})
         context['status_options'] = dict((key, val)
                                          for key, val in choices.STATUS_CHOICES)
-        context['filter'] = 'staff_no=%s&name=%s&status=%s&last=%s' % (
-            context['staff_no'], context['name'], context['status'], context['last'])
+        context['filter'] = 'staff_no=%s&name=%s&status=%s&is_last=%s' % (
+            context['staff_no'], context['name'], context['status'], context['is_last'])
 
         return context
 
