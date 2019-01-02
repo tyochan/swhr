@@ -1,7 +1,8 @@
-from django.forms import ModelForm, ValidationError, DateInput, Textarea
+from django.forms import ModelForm, ValidationError, DateInput, Textarea, ModelChoiceField
 
 # Models
 from .models import Leave
+from personal_details.models import Employee
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
@@ -10,6 +11,8 @@ from crispy_forms.bootstrap import AppendedText, PrependedText
 
 
 class LeaveForm(ModelForm):
+    employee = ModelChoiceField(queryset=Employee.objects.filter(active=True))
+
     class Meta:
         model = Leave
         fields = '__all__'

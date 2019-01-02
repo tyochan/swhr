@@ -37,3 +37,8 @@ body {
 .card {
   background-color: #eff0f1;
 }
+
+.alert-block{
+  margin: .25rem 0;
+  padding: .5rem 0 0 0;
+}

@@ -22,6 +22,18 @@
       </select>
     </div>
     <div class="col-xs-1">
+      <select class="form-control" id="id_last" name="last">
+        <option value='' disabled selected>Payment Type</option>
+        {% for key, val in last_options.items %}
+        {% if last == key %}
+        <option value='{{key}}' selected>{{val}}</option>
+        {% else %}
+        <option value='{{key}}'>{{val}}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-xs-1">
       <button type="submit" class="btn btn-secondary">Filter</button>
     </div>
     <a href="{% url 'payroll:index' %}" role="button" class="btn btn-danger">Reset</a>
@@ -69,10 +81,18 @@
         <td>{{p.net_pay}}</td>
         <td>{{p.get_status_display}}</td>
         <td>
+          {% if p.last %}
+          {% if p.status == 'CC'%}
+          <a href="{% url 'payroll:detail_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% else %}
+          <a href="{% url 'payroll:update_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% endif %}
+          {% else %}
           {% if p.status == 'CC'%}
           <a href="{% url 'payroll:detail_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% else %}
           <a href="{% url 'payroll:update_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% endif %}
           {% endif %}
         </td>
       </tr>
@@ -83,7 +103,7 @@
 
 <div class="footer">
   <a href="{% url 'payroll:create_payment' %}" class="btn btn-primary" role="button">Add New Payment</a>
-  <a href="{% url 'payroll:last_payment' %}" class="btn btn-warning" role="button">Add Last Payment</a>
+  <a href="{% url 'payroll:create_last_payment' %}" class="btn btn-warning" role="button">Add Last Payment</a>
   {% include "pagination.html" with filter=filter %}
 </div>
 {% endblock %}

@@ -35,13 +35,15 @@ class IndexView(ListView):
         staff_no = self.request.GET.get('staff_no', '')
         name = self.request.GET.get('name', '')
         status = self.request.GET.get('status', '')
-        print('Payment Filtering: %s %s %s' %
-              (staff_no, name, status))
+        last = bool(self.request.GET.get('last', ''))
+        print('Payment Filtering: %s %s %s %s' %
+              (staff_no, name, status, last))
 
         return Payment.objects.order_by(order_by).filter(Q(employee__staff_no__contains=staff_no),
                                                          Q(employee__last_name__contains=name) |
                                                          Q(employee__first_name__contains=name),
-                                                         Q(status__contains=status),)
+                                                         Q(status__contains=status),
+                                                         Q(last=last),)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -51,11 +53,14 @@ class IndexView(ListView):
         context['staff_no'] = self.request.GET.get('staff_no', '')
         context['name'] = self.request.GET.get('name', '')
         context['status'] = self.request.GET.get('status', '')
+        context['last'] = self.request.GET.get('last', '')
 
+        context['last_options'] = dict(
+            {'': 'Monthly Payment', 'True': 'Last Payment'})
         context['status_options'] = dict((key, val)
                                          for key, val in choices.STATUS_CHOICES)
-        context['filter'] = 'staff_no=%s&name=%s&status=%s' % (
-            context['staff_no'], context['name'], context['status'])
+        context['filter'] = 'staff_no=%s&name=%s&status=%s&last=%s' % (
+            context['staff_no'], context['name'], context['status'], context['last'])
 
         return context
 
@@ -73,7 +78,7 @@ class PaymentUpdateView(UpdateView):
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
-    # Updating annual leave quota and leave status
+    # Updating payment status
     def form_valid(self, form):
         payment = Payment.objects.get(id=self.kwargs['pk'])
         if 'cancel' in self.request.POST:
@@ -97,11 +102,51 @@ class PaymentPDFView(DetailView, WeasyTemplateResponseMixin):
     pdf_attachment = False
 
 
-class PaymentFinalView(CreateView):
-    form_class = forms.PaymentFinalForm
+class LastPaymentCreateView(CreateView):
+    form_class = forms.LastPaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+
+
+class LastPaymentUpdateView(UpdateView):
+    form_class = forms.LastPaymentUpdateForm
+    model = Payment
+    template_name = 'form_payment.html'
+    success_url = reverse_lazy('payroll:index')
+
+    def get_context_data(self, **kwargs):
+        context = super(LastPaymentUpdateView, self).get_context_data(**kwargs)
+        context['join_date'] = context['object'].employee.join_date
+        return context
+
+    # Updating payment status
+    def form_valid(self, form):
+        payment = Payment.objects.get(id=self.kwargs['pk'])
+        if 'cancel' in self.request.POST:
+            payment.status = 'CC'
+            payment.save()
+        return HttpResponseRedirect("/payroll/")
+
+
+class LastPaymentDetailView(UpdateView):
+    form_class = forms.LastPaymentDetailForm
+    model = Payment
+    template_name = 'form_payment.html'
+    success_url = reverse_lazy('payroll:index')
+
+    def get_context_data(self, **kwargs):
+        context = super(LastPaymentDetailView, self).get_context_data(**kwargs)
+        context['join_date'] = context['object'].employee.join_date
+        return context
+
+
+class LastPaymentPDFView(DetailView, WeasyTemplateResponseMixin):
+    model = Payment
+    context_object_name = 'p'
+    template_name = 'last_payslip_pdf.html'
+    pdf_filename = 'last_payslip.pdf'
+    pdf_attachment = False
 
 
 @ajax
@@ -287,17 +332,17 @@ def lastPayment(request):
     net_pay = total_payments - total_deductions
 
     # Annual Leave
-    end_date = datetime.date(period_end.year, 12, 31)
-    workdays = (end_date - period_end).days
+    year_end = datetime.date(period_end.year, 12, 31)
+    workdays_after_end = (year_end - period_end).days
     days_of_year = 0
     if calendar.isleap(period_end.year):
         days_of_year = 366
     else:
         days_of_year = 365
-    annual_leave = round(workdays / days_of_year * 15 * 2) / 2
-    annual_leave = employee.annual_leave - annual_leave
+    leaves_after_end = round(workdays_after_end / days_of_year * 15 * 2) / 2
+    leaves_unused = employee.annual_leave - leaves_after_end
 
     return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer,
             'mpf_employee': mpf_employee, 'net_pay': net_pay, 'no_pay_leave': no_pay_leave,
             'total_payments': total_payments, 'total_deductions': total_deductions,
-            'join_date': employee.join_date, 'annual_leave': annual_leave}
+            'join_date': employee.join_date, 'leaves_unused': leaves_unused}

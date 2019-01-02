@@ -1,7 +1,8 @@
-from django.forms import ModelForm, ValidationError, DateInput
+from django.forms import ModelForm, ValidationError, DateInput, ModelChoiceField, HiddenInput, NumberInput
 
 # Models
 from .models import Payment
+from personal_details.models import Employee
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
@@ -14,6 +15,8 @@ import calendar
 
 
 class PaymentForm(ModelForm):
+    employee = ModelChoiceField(queryset=Employee.objects.filter(active=True))
+
     class Meta:
         model = Payment
         fields = '__all__'
@@ -24,10 +27,15 @@ class PaymentForm(ModelForm):
         self.helper.layout = Layout(
             HTML('''
             <div class="form-row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="col-form-label font-weight-bold text-info">General</label>
             '''),
             Field('employee', css_class='form-group col-md-12'),
+            Row(
+                Column(AppendedText('leaves_unused', 'Days', readonly=True, display='none'),
+                       css_class='col-md-6'),
+                css_class='form-row'
+            ),
             Row(
                 Column('period_start', css_class='form-group col-md-6'),
                 Column('period_end', css_class='form-group col-md-6'),
@@ -38,8 +46,12 @@ class PaymentForm(ModelForm):
                 Column('method', css_class='form-group col-md-6'),
                 css_class='form-row'
             ),
-            Field('status', css_class='form-group col-md-12'),
-            PrependedText('net_pay', '$', css_class="font-weight-bold"),
+            Row(
+                Column('status', css_class='form-group col-md-6'),
+                Column(PrependedText(
+                    'net_pay', '$', css_class="font-weight-bold"), css_class='form-group col-md-6'),
+                css_class='form-row'
+            ),
             HTML('''
                 </div>
                 <div class="col-md-9">
@@ -50,6 +62,7 @@ class PaymentForm(ModelForm):
             '''),
             PrependedText('basic_salary', '$', css_class="payment"),
             PrependedText('allowance', '$', css_class="payment"),
+            PrependedText('leaves_compensation', '$', css_class="payment"),
             PrependedText('other_payments', '$', css_class="payment"),
             PrependedText('total_payments', '$', css_class="payment"),
             HTML('''
@@ -76,6 +89,7 @@ class PaymentForm(ModelForm):
                 </div>
             </div>
             '''),
+            Field('last'),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
             HTML(
                 '<a href="{% url \'payroll:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
@@ -86,6 +100,9 @@ class PaymentForm(ModelForm):
             attrs={'readonly': True})
         self.fields['period_end'].widget = DateInput(
             attrs={'readonly': True})
+        self.fields['leaves_unused'].widget = HiddenInput()
+        self.fields['leaves_compensation'].widget = HiddenInput()
+        self.fields['last'].widget = HiddenInput()
 
         # Rename display fields' names
         self.fields['period_start'].label = "Period Start"
@@ -118,10 +135,12 @@ class PaymentCreateForm(PaymentForm):
 
     def clean(self):
         data = super().clean()
+        print(data)
         # Check for overlapping payment
         payment = Payment.objects.filter(employee=data['employee'],
                                          period_start__lte=data['period_end'],
                                          period_end__gte=data['period_start'])
+        print(payment)
         if (payment):
             raise ValidationError(
                 'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
@@ -144,33 +163,55 @@ class PaymentUpdateForm(PaymentForm):
 class PaymentDetailForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(PaymentDetailForm, self).__init__(*args, **kwargs)
-        self.helper.layout[-2] = HTML(
-            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> ')
+        self.helper.layout.pop(-2)
 
         for name, field in self.fields.items():
             field.disabled = True
 
 
-class PaymentFinalForm(PaymentForm):
-    def __init__(self, *args, **kwargs):
-        super(PaymentFinalForm, self).__init__(*args, **kwargs)
+class LastPaymentCreateForm(PaymentCreateForm):
+    class Meta:
+        model = Payment
+        fields = '__all__'
 
-        self.helper.layout[1].insert(1, Row(
-            HTML("""<div class="formColumn form-group col-md-6">
+    def __init__(self, *args, **kwargs):
+        super(LastPaymentCreateForm, self).__init__(*args, **kwargs)
+
+        self.helper.layout[2].insert(0, HTML("""
+                    <div class="formColumn form-group col-md-6">
                         <label class="col-form-label">Join Date</label>
-                        <input type="text" name="join_date" class="dateinput form-control" id="id_join_date" autocomplete="off" readonly>
+                        <input type="text" name="join_date" class="dateinput form-control" id="id_join_date" value="{{join_date|date:"Y-m-d"}}" autocomplete="off" readonly>
                     </div>
                 """),
-            HTML("""<div class="formColumn form-group col-md-6">
-                        <label class="col-form-label">Annual Leave</label>
-                        <div class="input-group">
-                            <input type="text" name="annual_leave" class="form-control" id="id_annual_leave" autocomplete="off" readonly>
-                            <div class="input-group-append"> <span class="input-group-text">Days</span> </div>
-                        </div>
-                    </div>
-                """),
-            css_class='form-row'
-        ))
+                                     ),
 
         self.fields['period_end'].widget = DateInput(
             attrs={'readonly': False})
+        self.fields['leaves_unused'].widget = NumberInput()
+        self.fields['leaves_compensation'].widget = NumberInput()
+
+        self.fields['last'].initial = True
+
+        self.fields['leaves_unused'].label = "Leaves Unused"
+        self.fields['leaves_compensation'].label = "Leaves Compensation"
+
+
+class LastPaymentUpdateForm(LastPaymentCreateForm):
+    def __init__(self, *args, **kwargs):
+        super(LastPaymentUpdateForm, self).__init__(*args, **kwargs)
+        self.helper.layout[-2] = HTML(
+            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> ')
+        self.helper.layout.insert(-1, Submit('cancel',
+                                             'Cancel', css_class='btn-outline-danger'))
+
+        for name, field in self.fields.items():
+            field.disabled = True
+
+
+class LastPaymentDetailForm(LastPaymentCreateForm):
+    def __init__(self, *args, **kwargs):
+        super(LastPaymentDetailForm, self).__init__(*args, **kwargs)
+        self.helper.layout.pop(-2)
+
+        for name, field in self.fields.items():
+            field.disabled = True

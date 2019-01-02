@@ -27,16 +27,19 @@ $().ready(function() {
   } else { // Has input
     // Set start date and end date
     $('#id_period_start').datepicker("setEndDate", getEndDate())
-    $('#id_period_end').datepicker("setStartDate", getStartDate())
+    $('#id_period_end').datepicker("setStartDate", new Date())
   }
 
   array = location.pathname.split("/")
   id = array[array.length - 1]
   // Change export url
-  $('#id_export_pdf').attr("href", "/payroll/generatePDF/" + id)
+  // if (array.indexOf("last") > -1){
+  $('#id_export_pdf').attr("href", "../payslipPDF/" + id)
+  // }
 
   if (!$('#id_employee').val()) {
-    $(':input[type="number"]').val((0).toFixed(2))
+    $('.payment').val((0).toFixed(2))
+    $('.deduction').val((0).toFixed(2))
   }
 
   $('#id_pay_date').datepicker("setStartDate", getStartDate())

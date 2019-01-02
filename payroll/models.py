@@ -35,6 +35,10 @@ class Payment(models.Model):
     status = models.CharField(
         max_length=10, choices=choices.STATUS_CHOICES, default='PA', blank=True)
 
+    last = models.BooleanField(default=False, blank=True)
+    leaves_unused = models.FloatField(default=0, blank=True)
+    leaves_compensation = models.FloatField(default=0, blank=True)
+
     class meta:
         ordering = ['-period_start']
 
@@ -48,3 +52,7 @@ class Payment(models.Model):
     @property
     def start_late(self):
         return self.period_start < self.employee.join_date
+
+    @property
+    def get_years_served(self):
+        return (self.period_end.year - self.employee.join_date.year)
