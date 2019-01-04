@@ -5,13 +5,13 @@
 <div class="card text-white mt-2">
   <form class="form-row card-body" method="get" action=".">
     <div class="col-xs-1">
-      <input class="form-control" id="id_staff_no" name="staff_no" type="number" placeholder="Employee ID" value="{{staff_no}}">
+      <input class="form-control" id="id_staff_id" name="staff_id" type="number" placeholder="Employee ID" value="{{staff_id}}">
     </div>
     <div class="col-xs-1">
       <input class="form-control" id="id_name" name="name" type="text" placeholder="Name" value="{{name}}">
     </div>
     <div class="col-xs-1">
-      <input class="form-control dateinput" id="id_join_date" name="join_date" type="text" placeholder="Join Date" value="{{join_date}}">
+      <input class="form-control dateinput" id="id_date_joined" name="date_joined" type="text" placeholder="Date Joined" value="{{date_joined}}">
     </div>
     <div class="col-xs-1">
       <button type="submit" class="btn btn-secondary">Filter</button>
@@ -26,8 +26,8 @@
       <tr>
         <th>
           Employee ID
-          <a href="?order_by=staff_no&{{filter}}" class="fas fa-caret-up"></a>
-          <a href="?order_by=-staff_no&{{filter}}" class="fas fa-caret-down"></a>
+          <a href="?order_by=staff_id&{{filter}}" class="fas fa-caret-up"></a>
+          <a href="?order_by=-staff_id&{{filter}}" class="fas fa-caret-down"></a>
         </th>
         <th>
           Name
@@ -36,39 +36,39 @@
         </th>
         <th>
           Date Joined
-          <a href="?order_by=join_date&{{filter}}" class="fas fa-caret-up"></a>
-          <a href="?order_by=-join_date&{{filter}}" class="fas fa-caret-down"></a>
+          <a href="?order_by=date_joined&{{filter}}" class="fas fa-caret-up"></a>
+          <a href="?order_by=-date_joined&{{filter}}" class="fas fa-caret-down"></a>
         </th>
         <th>
-          Email
-          <a href="?order_by=email&{{filter}}" class="fas fa-caret-up"></a>
-          <a href="?order_by=-email&{{filter}}" class="fas fa-caret-down"></a>
+          Annual Leave (Days)
+          <a href="?order_by=annual_leave&{{filter}}" class="fas fa-caret-up"></a>
+          <a href="?order_by=-annual_leave&{{filter}}" class="fas fa-caret-down"></a>
         </th>
         <th>
           Status
-          <a href="?order_by=active&{{filter}}" class="fas fa-caret-up"></a>
-          <a href="?order_by=-active&{{filter}}" class="fas fa-caret-down"></a>
+          <a href="?order_by=is_active&{{filter}}" class="fas fa-caret-up"></a>
+          <a href="?order_by=-is_active&{{filter}}" class="fas fa-caret-down"></a>
         </th>
         <th>Action</th>
         <!-- <th></th> -->
       </tr>
     </thead>
     <tbody>
-      {% for e in employees %}
+      {% for u in users %}
       <tr>
-        <td>{{e.staff_no}}</td>
-        <td>{{e.last_name|add:" "|add:e.first_name}}</td>
-        <td>{{e.join_date|date:"d/m/Y"}}</td>
-        <td>{{e.email}}</td>
+        <td>{{u.staff_id}}</td>
+        <td>{{u.get_name}}</td>
+        <td>{{u.date_joined|date:"d/m/Y"}}</td>
+        <td>{{u.annual_leave}}</td>
         <td>
-          {% if e.active %}
+          {% if u.is_active %}
           Active
           {% else %}
           Inactive
           {% endif %}
         </td>
         <td>
-          <a href="{% url 'personal_details:update_staff' e.staff_no %}" class="btn btn-info" role="button">Edit Details</a>
+          <a href="{% url 'personal_details:update_user' u.staff_id %}" class="btn btn-info" role="button">Edit Details</a>
         </td>
       </tr>
       {% endfor %}
@@ -77,7 +77,7 @@
 </div>
 
 <div class="footer clearfix">
-  <a href="{% url 'personal_details:create_staff' %}" class="btn btn-primary" role="button">Add New Staff</a>
+  <a href="{% url 'personal_details:create_user' %}" class="btn btn-primary" role="button">Add New Staff</a>
   {% include "pagination.html" with filter=filter %}
 </div>
 {% endblock %}

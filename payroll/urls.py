@@ -19,8 +19,8 @@ urlpatterns = [
          name='detail_last_payment'),
 
     # Method
-    path('ajax/getSalary', views.calculateSalary, name='calculate_salary'),
-    path('last/ajax/getSalary', views.lastPayment, name='last_salary'),
+    path('ajax/payment_calculation', views.payment_calculation),
+    path('last/ajax/payment_calculation', views.payment_calculation),
     path('payslipPDF/<int:pk>', views.PaymentPDFView.as_view(), name='payslip_pdf'),
     path('last/payslipPDF/<int:pk>',
          views.LastPaymentPDFView.as_view(), name='last_payslip_pdf'),

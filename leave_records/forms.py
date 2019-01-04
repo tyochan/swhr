@@ -1,8 +1,8 @@
-from django.forms import ModelForm, ValidationError, DateInput, Textarea, ModelChoiceField
+from django.forms import ModelForm, ValidationError, DateInput, Textarea, ModelChoiceField, NumberInput
 
 # Models
 from .models import Leave
-from personal_details.models import Employee
+from personal_details.models import User
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
@@ -11,18 +11,23 @@ from crispy_forms.bootstrap import AppendedText, PrependedText
 
 
 class LeaveForm(ModelForm):
-    employee = ModelChoiceField(queryset=Employee.objects.filter(active=True))
+    user = ModelChoiceField(
+        label='Employee', queryset=User.objects.filter(is_staff=False, is_active=True))
 
     class Meta:
         model = Leave
         fields = '__all__'
+        widgets = {
+            'remarks': Textarea(),
+            'spend': NumberInput(attrs={'class': 'one-decimal'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(LeaveForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Row(
-                Column('employee', css_class='form-group col-md-3'),
+                Column('user', css_class='form-group col-md-3'),
                 Column('day_type', css_class='form-group col-md-1', readonly=True),
                 Column('start_date', css_class='form-group col-md-1'),
                 Column('end_date', css_class='form-group col-md-1'),
@@ -46,15 +51,6 @@ class LeaveForm(ModelForm):
                 '<a href="{% url \'leave_records:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
         )
 
-        # Modify widget
-        self.fields['remarks'].widget = Textarea()
-
-        # Rename display fields' names
-        self.fields['start_date'].label = "Start Date"
-        self.fields['end_date'].label = "End Date"
-        self.fields['spend'].label = "Days Spend"
-        self.fields['day_type'].label = "Day Type"
-
         # Avaliabiility of field (can't enable by js if disabled)
         self.fields['status'].disabled = True
 
@@ -68,10 +64,10 @@ class LeaveCreateForm(LeaveForm):
         if data["spend"]:
             # Check if leave exists quota
             if data["type"] == 'AL':
-                if data["spend"] > data["employee"].annual_leave:
+                if data["spend"] > data["user"].annual_leave:
                     raise ValidationError(
-                        'Leave exceeds current quota [%(quota)s days].', params={'quota': data["employee"].annual_leave})
-            leaves = Leave.objects.filter(employee=data["employee"],
+                        'Leave exceeds current quota [%(quota)s days].', params={'quota': data["user"].annual_leave})
+            leaves = Leave.objects.filter(user=data["user"],
                                           start_date__lte=data["end_date"],
                                           end_date__gte=data["start_date"]).exclude(status="RE")
             for l in leaves:

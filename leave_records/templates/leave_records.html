@@ -3,7 +3,7 @@
 <div class="card text-white mt-2">
   <form class="form-row card-body" method="get" action=".">
     <div class="col-xs-1">
-      <input class="form-control" id="id_staff_no" name="staff_no" type="number" placeholder="Employee ID" value="{{staff_no}}">
+      <input class="form-control" id="id_staff_id" name="staff_id" type="number" placeholder="Employee ID" value="{{staff_id}}">
     </div>
     <div class="col-xs-1">
       <input class="form-control" id="id_name" name="name" type="text" placeholder="Name" value="{{name}}">
@@ -62,8 +62,8 @@
         </th>
         <th>
           Employee
-          <a href="?order_by=employee&{{filter}}" class="fas fa-caret-up"></a>
-          <a href="?order_by=-employee&{{filter}}" class="fas fa-caret-down"></a>
+          <a href="?order_by=user&{{filter}}" class="fas fa-caret-up"></a>
+          <a href="?order_by=-user&{{filter}}" class="fas fa-caret-down"></a>
         </th>
         <th>
           Leave Type
@@ -87,7 +87,7 @@
       {% for l in leaves %}
       <tr>
         <td>{{l.start_date|date:"d/m/Y"}} - {{l.end_date|date:"d/m/Y"}}</td>
-        <td>{{l.employee.last_name|add:" "|add:l.employee.first_name}}</td>
+        <td>{{l.user.get_full_name}}</td>
         <td>{{l.get_type_display}}</td>
         <td>{{l.get_day_type_display}}</td>
         <td>{{l.get_status_display}}</td>

@@ -21,35 +21,19 @@ function basic_salary() {
 }
 
 $().ready(function() {
-  // If no date input
-  if (!getStartDate() && !getEndDate()) {
-    disable($("#id_period_end"))
-  } else { // Has input
-    // Set start date and end date
-    $('#id_period_start').datepicker("setEndDate", getEndDate())
-    $('#id_period_end').datepicker("setStartDate", new Date())
-  }
+  // Set start date and end date
+  $('.dateinput').datepicker("setEndDate", getEndDate())
+  $('#id_period_end').datepicker("setStartDate", new Date())
+  $('#id_pay_date').datepicker("setStartDate", getStartDate())
 
+  // Change export pdf urls
   array = location.pathname.split("/")
   id = array[array.length - 1]
-  // Change export url
-  // if (array.indexOf("last") > -1){
   $('#id_export_pdf').attr("href", "../payslipPDF/" + id)
-  // }
 
-  if (!$('#id_employee').val()) {
-    $('.payment').val((0).toFixed(2))
-    $('.deduction').val((0).toFixed(2))
-  } else {
-    calculateSalary()
+  if ($('#id_user').val()) {
+    payment_calculation()
   }
-
-  $('#id_pay_date').datepicker("setStartDate", getStartDate())
-  $('#id_pay_date').datepicker("setEndDate", getEndDate())
-
-  readonly($("#id_net_pay"))
-  readonly($("#id_total_payments"))
-  readonly($("#id_total_deductions"))
 });
 
 // start_date change
@@ -64,15 +48,15 @@ $('#id_period_start').datepicker().on("changeDate", function(e) {
 
 // end_date change
 $('#id_period_end').datepicker().on("changeDate", function(e) {
-  if ($('#id_employee').val()) {
-    calculateSalary()
+  if ($('#id_user').val()) {
+    payment_calculation()
   }
 })
 
 // Employee Chosen
-$('#id_employee').change(function() {
+$('#id_user').change(function() {
   if ($(this).val()) {
-    calculateSalary()
+    payment_calculation()
   }
 })
 

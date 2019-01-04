@@ -27,15 +27,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'personal_details.User'
 
 # Application definition
 
 INSTALLED_APPS = [
+    # Apps
     'personal_details',
     'leave_records',
     'payroll',
+
+    # Utils
     'crispy_forms',
     'django_ajax',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -124,11 +129,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "swhr/static"),
 ]
-
-MEDIA_URL = '/media/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

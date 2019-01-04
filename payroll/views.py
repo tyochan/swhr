@@ -5,7 +5,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from .models import Payment
 from django.db.models import Q
 from leave_records.models import Leave
-from personal_details.models import Employee
+from personal_details.models import User
 
 # Form classes
 from . import forms
@@ -17,10 +17,11 @@ from django.http import HttpResponseRedirect
 # Utils
 import datetime
 import calendar
-from swhr import strings
+from swhr import constant
 from django_ajax.decorators import ajax
 from django_weasyprint import WeasyTemplateResponseMixin
 from . import choices
+from swhr import utils
 
 
 class IndexView(ListView):
@@ -32,25 +33,30 @@ class IndexView(ListView):
         order_by = self.request.GET.get('order_by', '-period_start')
 
         # Filtering
-        staff_no = self.request.GET.get('staff_no', '')
+        staff_id = self.request.GET.get('staff_id', '')
         name = self.request.GET.get('name', '')
         status = self.request.GET.get('status', '')
         is_last = bool(self.request.GET.get('is_last', ''))
-        print('Payment Filtering: %s %s %s %s' %
-              (staff_no, name, status, is_last))
 
-        return Payment.objects.order_by(order_by).filter(Q(employee__staff_no__contains=staff_no),
-                                                         Q(employee__last_name__contains=name) |
-                                                         Q(employee__first_name__contains=name),
-                                                         Q(status__contains=status),
-                                                         Q(is_last=is_last),)
+        if bool(staff_id + name + status + self.request.GET.get('is_last', '')):
+
+            print('Payment Filtering: %s %s %s %s' %
+                  (staff_id, name, status, is_last))
+
+            return Payment.objects.order_by(order_by).filter(Q(user__staff_id__contains=staff_id),
+                                                             Q(user__last_name__contains=name) |
+                                                             Q(user__first_name__contains=name),
+                                                             Q(status__contains=status),
+                                                             Q(is_last=is_last),)
+        else:
+            return Payment.objects.order_by(order_by)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         context['order_by'] = self.request.GET.get('order_by', '-period_start')
 
         # Filtering
-        context['staff_no'] = self.request.GET.get('staff_no', '')
+        context['staff_id'] = self.request.GET.get('staff_id', '')
         context['name'] = self.request.GET.get('name', '')
         context['status'] = self.request.GET.get('status', '')
         context['is_last'] = self.request.GET.get('is_last', '')
@@ -59,8 +65,8 @@ class IndexView(ListView):
             {'': 'Monthly Payment', 'True': 'Last Payment'})
         context['status_options'] = dict((key, val)
                                          for key, val in choices.STATUS_CHOICES)
-        context['filter'] = 'staff_no=%s&name=%s&status=%s&is_last=%s' % (
-            context['staff_no'], context['name'], context['status'], context['is_last'])
+        context['filter'] = 'staff_id=%s&name=%s&status=%s&is_last=%s' % (
+            context['staff_id'], context['name'], context['status'], context['is_last'])
 
         return context
 
@@ -117,7 +123,7 @@ class LastPaymentUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super(LastPaymentUpdateView, self).get_context_data(**kwargs)
-        context['join_date'] = context['object'].employee.join_date
+        context['date_joined'] = context['object'].user.date_joined
         return context
 
     # Updating payment status
@@ -137,7 +143,7 @@ class LastPaymentDetailView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super(LastPaymentDetailView, self).get_context_data(**kwargs)
-        context['join_date'] = context['object'].employee.join_date
+        context['date_joined'] = context['object'].user.date_joined
         return context
 
 
@@ -149,82 +155,31 @@ class LastPaymentPDFView(DetailView, WeasyTemplateResponseMixin):
     pdf_attachment = False
 
 
-@ajax
-def calculateSalary(request):
-    employee = Employee.objects.get(staff_no=request.GET['staff_no'])
+def limit_leave_period(start_date, end_date, period_start, period_end):
+    if start_date < period_start:
+        start_date = period_start
+    if end_date > period_end:
+        end_date = period_end
+    return start_date, end_date
 
-    # Split and parse string date to int list
-    period_start = [int(x) for x in request.GET['period_start'].split("-")]
-    period_end = [int(x) for x in request.GET['period_end'].split("-")]
-    period_start = datetime.date(
-        period_start[0], period_start[1], period_start[2])
-    period_end = datetime.date(period_end[0], period_end[1], period_end[2])
 
-    # Max days in this pay period
-    temp, period_max = calendar.monthrange(period_end.year, period_end.month)
-    # First month
-    if (period_end - employee.join_date).days < 32:
-        period_work = (period_end - employee.join_date).days + 1
+def get_mpf(salary, days_passed):
+    mpf_employer, mpf_employee = 0, 0
+
+    # less than 3 months no mpf
+    if days_passed < 60:
+        pass
     else:
-        period_work = (period_end - period_start).days + 1
+        # Employer MPF cumulative for third month
+        if 60 <= days_passed < 90:
+            payments = Payment.objects.all().filter(user=user,
+                                                    period_end__lte=period_start)
+            for p in payments:
+                if p.net_pay > 30000:
+                    mpf_employer += 1500
+                else:
+                    mpf_employer += p.net_pay * 0.05
 
-    # This month
-    leaves = Leave.objects.all().filter(employee=employee,
-                                        start_date__lte=period_end, end_date__gte=period_start, type='NL').exclude(status='RE')
-
-    for l in leaves:
-        # Limit leave in within period
-        if l.start_date < period_start:
-            l.start_date = period_start
-        if l.end_date > period_end:
-            l.end_date = period_end
-
-        # Calculate spend days
-        spend = (l.end_date - l.start_date).days + 1
-        # Weekends
-        temp = l.start_date
-        while temp < l.end_date + datetime.timedelta(days=1):
-            if temp.isoweekday() == 6 or temp.isoweekday() == 7:
-                spend -= 1
-            temp += datetime.timedelta(days=1)
-
-        # Holidays
-        for h in strings.HOLIDAYS:
-            date = datetime.datetime.strptime(h, '%Y-%m-%d').date()
-            if period_start < date < period_end:
-                spend -= 1
-
-        period_work -= spend
-
-    ratio = period_work / period_max
-    salary = employee.salary * ratio
-    no_pay_leave = employee.salary * (period_max - period_work) / period_max
-
-    # Calculate net pay and mpf
-    mpf_employer, mpf_employee, net_pay = 0, 0, 0
-    past = (period_end - employee.join_date).days + 1  # Past days from join
-    if past < 60:  # less than 3 months no mpf
-        net_pay = salary
-    elif 60 <= past < 90:  # 3rd month
-        payments = Payment.objects.all().filter(employee=employee,
-                                                period_end__lte=period_start)
-        # Employer MPF cumulative
-        for p in payments:
-            if p.net_pay > 30000:
-                mpf_employer += 1500
-            else:
-                mpf_employer += p.net_pay * 0.05
-
-        if salary > 30000:
-            mpf_employee = 1500
-            mpf_employer += 1500
-        elif 7100 <= salary <= 30000:
-            mpf_employee = salary * 0.05
-            mpf_employer += salary * 0.05
-        else:
-            mpf_employer += salary * 0.05
-
-    else:  # 4th month onwards
         if salary > 30000:
             mpf_employee = 1500
             mpf_employer = 1500
@@ -234,115 +189,66 @@ def calculateSalary(request):
         else:
             mpf_employer = salary * 0.05
 
-    total_payments = employee.salary
-    total_deductions = mpf_employee + no_pay_leave
-    net_pay = total_payments - total_deductions
-    return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer,
-            'mpf_employee': mpf_employee, 'net_pay': net_pay, 'no_pay_leave': no_pay_leave,
-            'total_payments': total_payments, 'total_deductions': total_deductions, }
+    return mpf_employer, mpf_employee
 
 
 @ajax
-def lastPayment(request):
-    employee = Employee.objects.get(staff_no=request.GET['staff_no'])
+def payment_calculation(request):
+    user = User.objects.get(id=request.GET['user_id'])
 
     # Split and parse string date to int list
-    period_start = [int(x) for x in request.GET['period_start'].split("-")]
-    period_end = [int(x) for x in request.GET['period_end'].split("-")]
-    period_start = datetime.date(
-        period_start[0], period_start[1], period_start[2])
-    period_end = datetime.date(period_end[0], period_end[1], period_end[2])
+    period_start = datetime.datetime.strptime(
+        request.GET['period_start'], '%Y-%m-%d')
+    period_end = datetime.datetime.strptime(
+        request.GET['period_end'], '%Y-%m-%d')
+    period_end = period_end.replace(tzinfo=None)
+    date_joined = user.date_joined.replace(
+        tzinfo=None)  # replace timezone for comparison
+
+    days_passed = (period_end - date_joined).days + 1
 
     # Max days in this pay period
     temp, period_max = calendar.monthrange(period_end.year, period_end.month)
     # First month
-    if (period_end - employee.join_date).days < 32:
-        period_work = (period_end - employee.join_date).days + 1
-    else:
-        period_work = (period_end - period_start).days + 1
+    period_work = days_passed if days_passed < 32 else (
+        period_end - period_start).days + 1
 
     # This month
-    leaves = Leave.objects.all().filter(employee=employee,
+    leaves = Leave.objects.all().filter(user=user,
                                         start_date__lte=period_end, end_date__gte=period_start, type='NL').exclude(status='RE')
-
     for l in leaves:
-        # Limit leave in within period
-        if l.start_date < period_start:
-            l.start_date = period_start
-        if l.end_date > period_end:
-            l.end_date = period_end
-
-        # Calculate spend days
-        spend = (l.end_date - l.start_date).days + 1
-        # Weekends
-        temp = l.start_date
-        while temp < l.end_date + datetime.timedelta(days=1):
-            if temp.isoweekday() == 6 or temp.isoweekday() == 7:
-                spend -= 1
-            temp += datetime.timedelta(days=1)
-
-        # Holidays
-        for h in strings.HOLIDAYS:
-            date = datetime.datetime.strptime(h, '%Y-%m-%d').date()
-            if period_start < date < period_end:
-                spend -= 1
-
+        # Limit leave in within period and Calculate spend days
+        spend = utils.leave_spend_days(limit_leave_period(
+            l.start_date, l.end_date, period_start, period_end))
         period_work -= spend
 
     ratio = period_work / period_max
-    salary = employee.salary * ratio
-    no_pay_leave = employee.salary * (period_max - period_work) / period_max
+    salary = user.salary * ratio
+    no_pay_leave = user.salary * (period_max - period_work) / period_max
 
     # Calculate net pay and mpf
-    mpf_employer, mpf_employee, net_pay = 0, 0, 0
-    past = (period_end - employee.join_date).days + 1  # Past days from join
-    if past < 60:  # less than 3 months no mpf
-        net_pay = salary
-    elif 60 <= past < 90:  # 3rd month
-        payments = Payment.objects.all().filter(employee=employee,
-                                                period_end__lte=period_start)
-        # Employer MPF cumulative
-        for p in payments:
-            if p.net_pay > 30000:
-                mpf_employer += 1500
-            else:
-                mpf_employer += p.net_pay * 0.05
+    mpf_employer, mpf_employee = get_mpf(salary, days_passed)
 
-        if salary > 30000:
-            mpf_employee = 1500
-            mpf_employer += 1500
-        elif 7100 <= salary <= 30000:
-            mpf_employee = salary * 0.05
-            mpf_employer += salary * 0.05
-        else:
-            mpf_employer += salary * 0.05
+    # Unused Annual Leaves if last payment
+    unused_leave_pay, unused_leave_days = 0, 0
+    if request.GET['is_last'] == 'True':
+        year_end = datetime.datetime(period_end.year, 12, 31)
+        workdays_after_end = (year_end - period_end).days
+        days_of_year = 366 if calendar.isleap(period_end.year) else 365
+        future_leave_days = round(
+            workdays_after_end / days_of_year * 15 * 2) / 2
+        unused_leave_days = user.annual_leave - future_leave_days
 
-    else:  # 4th month onwards
-        if salary > 30000:
-            mpf_employee = 1500
-            mpf_employer = 1500
-        elif 7100 <= salary <= 30000:
-            mpf_employee = salary * 0.05
-            mpf_employer = salary * 0.05
-        else:
-            mpf_employer = salary * 0.05
+    # Total Payment = Basic Salary + Allowance + Others
+    total_payments = user.salary + \
+        float(request.GET['allowance']) + float(request.GET['other_payments'])
 
-    total_payments = employee.salary
-    total_deductions = mpf_employee + no_pay_leave
+    # Total Deduction = MPF + No Pay Leave + Others
+    total_deductions = mpf_employee + no_pay_leave + \
+        float(request.GET['other_deductions'])
     net_pay = total_payments - total_deductions
-
-    # Annual Leave
-    year_end = datetime.date(period_end.year, 12, 31)
-    workdays_after_end = (year_end - period_end).days
-    days_of_year = 0
-    if calendar.isleap(period_end.year):
-        days_of_year = 366
-    else:
-        days_of_year = 365
-    leaves_after_end = round(workdays_after_end / days_of_year * 15 * 2) / 2
-    leaves_unused = employee.annual_leave - leaves_after_end
-
-    return {'basic_salary': employee.salary, 'mpf_employer': mpf_employer,
+    return {'basic_salary': user.salary, 'mpf_employer': mpf_employer,
             'mpf_employee': mpf_employee, 'net_pay': net_pay, 'no_pay_leave': no_pay_leave,
             'total_payments': total_payments, 'total_deductions': total_deductions,
-            'join_date': employee.join_date, 'leaves_unused': leaves_unused}
+            'date_joined': user.date_joined.date(), 'unused_leave_days': unused_leave_days,
+            'unused_leave_pay': unused_leave_pay}

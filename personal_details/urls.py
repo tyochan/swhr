@@ -8,8 +8,8 @@ urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
 
     # /personal_details/string/
-    path('create', views.EmployeeCreateView.as_view(), name='create_staff'),
-    path('update/<int:pk>', views.EmployeeUpdateView.as_view(), name='update_staff'),
+    path('create', views.UserCreateView.as_view(), name='create_user'),
+    path('update/<slug>', views.UserUpdateView.as_view(), name='update_user'),
 
-    path('ajax/getLeave', views.calculateAnnualLeave, name='calculate_leave')
+    path('ajax/getLeave', views.calculateAnnualLeave)
 ]

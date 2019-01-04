@@ -1,10 +1,14 @@
-function calculateSalary() {
+function payment_calculation() {
   $.ajax({
-    url: "ajax/getSalary",
+    url: "ajax/payment_calculation",
     data: {
-      'staff_no': $('#id_employee').val(),
+      'user_id': $('#id_user').val(),
       'period_start': getStartDateText(),
       'period_end': getEndDateText(),
+      'allowance': $('#id_allowance').val(),
+      'other_payments': $('#id_other_payments').val(),
+      'other_deductions': $('#id_other_deductions').val(),
+      'is_last': $('#id_is_last').val(),
     },
     dataType: 'json',
     type: "GET",
@@ -22,13 +26,13 @@ function calculateSalary() {
 
       array = location.pathname.split("/")
       if (array.indexOf("last") > -1) {
-        $('#id_join_date').val(data.join_date)
-        if (data.join_date > getStartDate()) {
+        $('#id_date_joined').val(data.date_joined)
+        if (data.date_joined > getStartDate()) {
           $('#id_period_end').datepicker("setStartDate", data.join_date)
         }
-        $('#id_leaves_unused').val(data.leaves_unused.toFixed(1))
+        $('#id_unused_leave_days').val(data.unused_leave_days.toFixed(1))
+        $('#id_unused_leave_pay').val(data.unused_leave_pay.toFixed(2))
       }
-
 
       log("ajax: calculate salary success"); // another sanity check
     },

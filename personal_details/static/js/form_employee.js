@@ -1,43 +1,49 @@
 function getStartDateText() {
-  return $('#id_join_date').val()
+  return $('#id_date_joined').val()
 }
 
 function getEndDateText() {
-  return $('#id_leave_date').val()
+  return $('#id_last_date').val()
 }
 
 function getStartDate() {
-  return $('#id_join_date').datepicker('getDate')
+  return $('#id_date_joined').datepicker('getDate')
 }
 
 function getEndDate() {
-  return $('#id_leave_date').datepicker('getDate')
+  return $('#id_last_date').datepicker('getDate')
 }
 
 $().ready(function() {
-  // Initialize All Datepicker
-  $(".dateinput").datepicker()
+  staff_id = $("#id_staff_id").val()
+  $('#id_username').val(staff_id)
+  $('#id_password').val(staff_id)
 
-  $('#id_leave_date').datepicker("setStartDate", getStartDate())
+  $('#id_last_date').datepicker("setStartDate", getStartDate())
 
-  if ($("#id_active").is(":checked")) {
-    disable($("#id_leave_date"))
+  if ($("#id_is_active").is(":checked")) {
+    disable($("#id_last_date"))
   } else {
-    enable($("#id_leave_date"))
+    enable($("#id_last_date"))
+  }
+
+  array = location.pathname.split("/")
+  if (array.indexOf("create") > -1) {
+    getAnnualLeave()
   }
 });
 
-// Toggle leave_date
-$("#id_active").on('click', function() {
+// Toggle last_date
+$("#id_is_active").on('click', function() {
   if (this.checked) {
-    disable($("#id_leave_date"))
+    disable($("#id_last_date"))
   } else {
-    $('#id_leave_date').datepicker("setStartDate", getStartDate())
-    enable($("#id_leave_date"))
+    $('#id_last_date').datepicker("setStartDate", getStartDate())
+    enable($("#id_last_date"))
   }
 })
 
 // Join dateinput
-$("#id_join_date").datepicker().on("changeDate", function(e) {
-  calculateAnnualLeave()
+$("#id_date_joined").datepicker().on("changeDate", function(e) {
+  getAnnualLeave()
 })

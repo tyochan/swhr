@@ -41,6 +41,7 @@ function updateSpendDays() {
   // Update days spend
   diff += 1
   $('input[name=spend]').val(diff)
+  setDecimal($('#id_spend'), 1)
 }
 
 // Toggle Day type
@@ -103,8 +104,9 @@ $('#id_end_date').datepicker().on("changeDate", function(e) {
 // day_type change
 $('#id_day_type').on('change', function() {
   if (this.value == 'HD') { // Half day spend = 0.5
-    $('input[name=spend]').val(0.5)
+    $('#id_spend').val(0.5)
   } else { // Full day spend = 1 OR Blank
-    $('input[name=spend]').val(1)
+    $('#id_spend').val(1)
   }
+  setDecimal($('#id_spend'), 1)
 })

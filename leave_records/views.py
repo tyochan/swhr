@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 # Models
 from .models import Leave
 from django.db.models import Q
-from personal_details.models import Employee
+from personal_details.models import User
 
 # Form classes
 from . import forms
@@ -25,27 +25,31 @@ class IndexView(ListView):
         order_by = self.request.GET.get('order_by', '-end_date')
 
         # Filtering
-        staff_no = self.request.GET.get('staff_no', '')
+        staff_id = self.request.GET.get('staff_id', '')
         name = self.request.GET.get('name', '')
         type = self.request.GET.get('type', '')
         day_type = self.request.GET.get('day_type', '')
         status = self.request.GET.get('status', '')
 
-        print('Leave Filtering: %s %s %s %s %s' %
-              (staff_no, name, type, day_type, status))
-        return Leave.objects.order_by(order_by).filter(Q(employee__staff_no__contains=staff_no),
-                                                       Q(employee__last_name__contains=name) |
-                                                       Q(employee__first_name__contains=name),
-                                                       Q(type__contains=type),
-                                                       Q(day_type__contains=day_type),
-                                                       Q(status__contains=status),)
+        if bool(staff_id + name + type + day_type + status):
+            print('Leave Filtering: %s %s %s %s %s' %
+                  (staff_id, name, type, day_type, status))
+            return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
+                                                           Q(user__staff_id__contains=staff_id),
+                                                           Q(user__last_name__contains=name) |
+                                                           Q(user__first_name__contains=name),
+                                                           Q(type__contains=type),
+                                                           Q(day_type__contains=day_type),
+                                                           Q(status__contains=status),)
+        else:
+            return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         context['order_by'] = self.request.GET.get('order_by', '-end_date')
 
         # Filtering
-        context['staff_no'] = self.request.GET.get('staff_no', '')
+        context['staff_id'] = self.request.GET.get('staff_id', '')
         context['name'] = self.request.GET.get('name', '')
         context['type'] = self.request.GET.get('type', '')
         context['day_type'] = self.request.GET.get('day_type', '')
@@ -57,9 +61,8 @@ class IndexView(ListView):
                                          for key, val in choices.STATUS_CHOICES)
         context['day_type_options'] = dict((key, val)
                                            for key, val in choices.LEAVE_DAY_TYPE)
-        context['filter'] = 'staff_no=%s&name=%s&type=%s&day_type=%s&status=%s' % (
-            context['staff_no'], context['name'], context['type'], context['day_type'], context['status'])
-
+        context['filter'] = 'staff_id=%s&name=%s&type=%s&day_type=%s&status=%s' % (
+            context['staff_id'], context['name'], context['type'], context['day_type'], context['status'])
         return context
 
 
@@ -70,10 +73,10 @@ class LeaveCreateView(CreateView):
 
     # Update annual leave quota
     def form_valid(self, form):
-        employee = Employee.objects.get(
-            staff_no=form.cleaned_data['employee'].staff_no)
-        employee.annual_leave -= form.cleaned_data['spend']
-        employee.save()
+        user = User.objects.get(
+            staff_id=form.cleaned_data['user'].staff_id)
+        user.annual_leave -= form.cleaned_data['spend']
+        user.save()
         return super().form_valid(form)
 
 
@@ -88,9 +91,9 @@ class LeaveUpdateView(UpdateView):
         if 'reject' not in self.request.POST:
             leave.status = 'AP'
         else:
-            employee = leave.employee
-            employee.annual_leave += leave.spend
-            employee.save()
+            user = leave.user
+            user.annual_leave += leave.spend
+            user.save()
             leave.status = 'RE'
         leave.save()
         return HttpResponseRedirect("/leave_records/")

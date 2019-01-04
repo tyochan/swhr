@@ -1,8 +1,8 @@
-function calculateAnnualLeave() {
+function getAnnualLeave() {
   $.ajax({
     url: "ajax/getLeave",
     data: {
-      'join_date': getStartDateText(),
+      'date_joined': getStartDateText(),
     },
     dataType: 'json',
     type: "GET",

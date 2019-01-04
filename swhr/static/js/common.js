@@ -24,6 +24,18 @@ function readonly(object) {
   object.prop('readonly', true)
 }
 
+function rip(object) {
+  return object.val().trim()
+}
+
+function setDecimal(object, decimal) {
+  if (!object.val()) {
+    object.val(parseFloat(0).toFixed(decimal))
+  } else {
+    object.val(parseFloat(object.val()).toFixed(decimal))
+  }
+}
+
 $('input').on('keydown', function(event) {
   var x = event.which;
   if (x === 13) {
@@ -33,6 +45,18 @@ $('input').on('keydown', function(event) {
 
 $('.dateinput').on('keydown', function(event) {
   this.blur()
+})
+
+$('input:text').on('change', function(event) {
+  $(this).val(rip($(this)))
+})
+
+$('.one-decimal').on('change', function(event) {
+  setDecimal($(this), 1)
+})
+
+$('.two-decimal').on('change', function(event) {
+  setDecimal($(this), 2)
 })
 
 // Datepicker options
@@ -56,5 +80,8 @@ $().ready(function() {
 
   // Initialize All Datepicker
   $(".dateinput").datepicker()
+
   $("input").attr("autocomplete", "off");
+  setDecimal($('.one-decimal'), 1)
+  setDecimal($('.two-decimal'), 2)
 });

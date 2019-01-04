@@ -2,7 +2,7 @@ from django.forms import ModelForm, ValidationError, DateInput, ModelChoiceField
 
 # Models
 from .models import Payment
-from personal_details.models import Employee
+from personal_details.models import User
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
@@ -15,11 +15,19 @@ import calendar
 
 
 class PaymentForm(ModelForm):
-    employee = ModelChoiceField(queryset=Employee.objects.filter(active=True))
+    user = ModelChoiceField(label='Employee', queryset=User.objects.filter(
+        is_staff=False, is_active=True))
 
     class Meta:
         model = Payment
         fields = '__all__'
+        widgets = {
+            'period_start': DateInput(attrs={'readonly': True}),
+            'period_end': DateInput(attrs={'readonly': True}),
+            'unused_leave_days': HiddenInput(),
+            'unused_leave_pay': HiddenInput(),
+            'is_last': HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         super(PaymentForm, self).__init__(*args, **kwargs)
@@ -30,9 +38,9 @@ class PaymentForm(ModelForm):
                 <div class="col-md-3">
                     <label class="col-form-label font-weight-bold text-info">General</label>
             '''),
-            Field('employee', css_class='form-group col-md-12'),
+            Field('user', css_class='form-group col-md-12'),
             Row(
-                Column(AppendedText('leaves_unused', 'Days', readonly=True, display='none'),
+                Column(AppendedText('unused_leave_days', 'Days', readonly=True),
                        css_class='col-md-6'),
                 css_class='form-row'
             ),
@@ -49,7 +57,7 @@ class PaymentForm(ModelForm):
             Row(
                 Column('status', css_class='form-group col-md-6'),
                 Column(PrependedText(
-                    'net_pay', '$', css_class="font-weight-bold"), css_class='form-group col-md-6'),
+                    'net_pay', '$', css_class="font-weight-bold two-decimal", readonly=True), css_class='form-group col-md-6'),
                 css_class='form-row'
             ),
             HTML('''
@@ -60,11 +68,15 @@ class PaymentForm(ModelForm):
                         <div class="formColumn form-group col-md-3 rounded  border-success">
                             <label class="col-form-label font-weight-bold text-success">Payments</label>
             '''),
-            PrependedText('basic_salary', '$', css_class="payment"),
-            PrependedText('allowance', '$', css_class="payment"),
-            PrependedText('leaves_compensation', '$', css_class="payment"),
-            PrependedText('other_payments', '$', css_class="payment"),
-            PrependedText('total_payments', '$', css_class="payment"),
+            PrependedText('basic_salary', '$',
+                          css_class="payment two-decimal", readonly=True),
+            PrependedText('unused_leave_pay', '$',
+                          css_class="payment two-decimal"),
+            PrependedText('allowance', '$', css_class="payment two-decimal"),
+            PrependedText('other_payments', '$',
+                          css_class="payment two-decimal"),
+            PrependedText('total_payments', '$',
+                          css_class="two-decimal", readonly=True),
             HTML('''
                         </div>
                         <div class="col-md-1"></div>
@@ -72,17 +84,21 @@ class PaymentForm(ModelForm):
                             <label class="col-form-label font-weight-bold text-danger">Deductions</label>
 
             '''),
-            PrependedText('mpf_employee', '$', css_class="deduction"),
-            PrependedText('np_leave', '$', css_class="deduction"),
-            PrependedText('other_deductions', '$', css_class="deduction"),
-            PrependedText('total_deductions', '$', css_class="deduction"),
+            PrependedText('mpf_employee', '$',
+                          css_class="deduction two-decimal", readonly=True),
+            PrependedText('np_leave', '$', css_class="deduction two-decimal"),
+            PrependedText('other_deductions', '$',
+                          css_class="deduction two-decimal"),
+            PrependedText('total_deductions', '$',
+                          css_class="two-decimal", readonly=True),
             HTML('''
                         </div>
                         <div class="col-md-1"></div>
                         <div class="formColumn form-group col-md-3 rounded  border-secondary">
                             <label class="col-form-label font-weight-bold text-secondary"> Others </label>
             '''),
-            PrependedText('mpf_employer', '$'),
+            PrependedText('mpf_employer', '$',
+                          css_class="two-decimal", readonly=True),
             HTML('''
                         </div>
                     </div>
@@ -94,28 +110,6 @@ class PaymentForm(ModelForm):
             HTML(
                 '<a href="{% url \'payroll:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
         )
-
-        # Modify widget
-        self.fields['period_start'].widget = DateInput(
-            attrs={'readonly': True})
-        self.fields['period_end'].widget = DateInput(
-            attrs={'readonly': True})
-        self.fields['leaves_unused'].widget = HiddenInput()
-        self.fields['leaves_compensation'].widget = HiddenInput()
-        self.fields['is_last'].widget = HiddenInput()
-
-        # Rename display fields' names
-        self.fields['period_start'].label = "Period Start"
-        self.fields['period_end'].label = "Period End"
-        self.fields['pay_date'].label = "Pay Date"
-        self.fields['method'].label = "Pay Method"
-        self.fields['np_leave'].label = "No Pay Leaves"
-        self.fields['other_payments'].label = "Others"
-        self.fields['other_deductions'].label = "Others"
-        self.fields['mpf_employee'].label = "Employee MPF Contribution"
-        self.fields['mpf_employer'].label = "Employer MPF Contribution"
-        self.fields['total_payments'].label = "Total"
-        self.fields['total_deductions'].label = "Total"
 
         # Init field data
         date = datetime.date.today()  # datetime.date(2018, 12, 18)
@@ -135,16 +129,13 @@ class PaymentCreateForm(PaymentForm):
 
     def clean(self):
         data = super().clean()
-        print(data)
         # Check for overlapping payment
-        payment = Payment.objects.filter(employee=data['employee'],
+        payment = Payment.objects.filter(user=data['user'],
                                          period_start__lte=data['period_end'],
                                          period_end__gte=data['period_start'])
-        print(payment)
         if (payment):
             raise ValidationError(
                 'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
-
         return data
 
 
@@ -175,21 +166,20 @@ class LastPaymentForm(PaymentForm):
 
         self.helper.layout[2].insert(0, HTML("""
                     <div class="formColumn form-group col-md-6">
-                        <label class="col-form-label">Join Date</label>
-                        <input type="text" name="join_date" class="dateinput form-control" id="id_join_date" value="{{join_date|date:"Y-m-d"}}" autocomplete="off" readonly>
+                        <label class="col-form-label">Date Joined</label>
+                        <input type="text" name="date_joined" class="dateinput form-control" id="id_date_joined" value="{{date_joined|date:"Y-m-d"}}" autocomplete="off" readonly>
                     </div>
                 """),
                                      ),
 
         self.fields['period_end'].widget = DateInput(
             attrs={'readonly': False})
-        self.fields['leaves_unused'].widget = NumberInput()
-        self.fields['leaves_compensation'].widget = NumberInput()
+        self.fields['unused_leave_days'].widget = NumberInput(
+            attrs={'class': 'one-decimal'})
+        self.fields['unused_leave_pay'].widget = NumberInput(
+            attrs={'class': 'two-decimal'})
 
         self.fields['is_last'].initial = True
-
-        self.fields['leaves_unused'].label = "Leaves Unused"
-        self.fields['leaves_compensation'].label = "Leaves Compensation"
 
 
 class LastPaymentCreateForm(LastPaymentForm):
@@ -198,12 +188,10 @@ class LastPaymentCreateForm(LastPaymentForm):
 
     def clean(self):
         data = super().clean()
-        print(data)
         # Check for overlapping payment
-        payment = Payment.objects.filter(employee=data['employee'],
+        payment = Payment.objects.filter(user=data['user'],
                                          period_start__lte=data['period_end'],
                                          period_end__gte=data['period_start'])
-        print(payment)
         if (payment):
             raise ValidationError(
                 'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
