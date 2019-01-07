@@ -1,7 +1,4 @@
-MSPERDAY = (1000 * 60 * 60 * 24)
-
 HOLIDAYS = [
-  '2018-12-25', '2018-12-26',
   '2019-1-1', '2019-2-5', '2019-2-6', '2019-2-7', '2019-4-5', '2019-4-19', '2019-4-22', '2019-5-1', '2019-5-13', '2019-6-7', '2019-7-1', '2019-10-1', '2019-10-7', '2019-12-25', '2019-12-26',
   '2020-1-1', '2020-1-27', '2020-1-28', '2020-4-10', '2020-4-13', '2020-4-30', '2020-5-1', '2020-6-25', '2020-7-1', '2020-10-1', '2020-10-2', '2020-10-26', '2020-12-25',
   '2021-1-1', '2021-2-12', '2021-2-15', '2021-4-2', '2021-4-5', '2021-5-19', '2021-6-14', '2021-7-1', '2021-9-22', '2021-10-1', '2021-10-14', '2021-12-27',
@@ -24,8 +21,12 @@ function readonly(object) {
   object.prop('readonly', true)
 }
 
+function readok(object) {
+  object.prop('readonly', false)
+}
+
 function rip(object) {
-  return object.val().trim()
+  object.val(object.val().trim())
 }
 
 function setDecimal(object, decimal) {
@@ -34,6 +35,22 @@ function setDecimal(object, decimal) {
   } else {
     object.val(parseFloat(object.val()).toFixed(decimal))
   }
+}
+
+function name_in_path(name) {
+  array = location.pathname.split("/")
+  if (array.indexOf(name) > -1) {
+    return true
+  }
+  return false
+}
+
+function add_all(objects) {
+  value = 0
+  objects.each(function() {
+    value += parseFloat(objects[i].val())
+  })
+  return value
 }
 
 $('input').on('keydown', function(event) {
@@ -48,7 +65,7 @@ $('.dateinput').on('keydown', function(event) {
 })
 
 $('input:text').on('change', function(event) {
-  $(this).val(rip($(this)))
+  rip($(this))
 })
 
 $('.one-decimal').on('change', function(event) {
@@ -82,6 +99,6 @@ $().ready(function() {
   $(".dateinput").datepicker()
 
   $("input").attr("autocomplete", "off");
-  setDecimal($('.one-decimal'), 1)
-  setDecimal($('.two-decimal'), 2)
+  $('.one-decimal').trigger("change")
+  $('.two-decimal').trigger("change")
 });

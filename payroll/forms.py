@@ -132,23 +132,11 @@ class PaymentCreateForm(PaymentForm):
         # Check for overlapping payment
         payment = Payment.objects.filter(user=data['user'],
                                          period_start__lte=data['period_end'],
-                                         period_end__gte=data['period_start'])
+                                         period_end__gte=data['period_start']).exclude(status="CC")
         if (payment):
             raise ValidationError(
                 'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
         return data
-
-
-class PaymentUpdateForm(PaymentForm):
-    def __init__(self, *args, **kwargs):
-        super(PaymentUpdateForm, self).__init__(*args, **kwargs)
-        self.helper.layout[-2] = HTML(
-            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> ')
-        self.helper.layout.insert(-1, Submit('cancel',
-                                             'Cancel', css_class='btn-outline-danger'))
-
-        for name, field in self.fields.items():
-            field.disabled = True
 
 
 class PaymentDetailForm(PaymentForm):
@@ -158,6 +146,15 @@ class PaymentDetailForm(PaymentForm):
 
         for name, field in self.fields.items():
             field.disabled = True
+
+
+class PaymentUpdateForm(PaymentDetailForm):
+    def __init__(self, *args, **kwargs):
+        super(PaymentUpdateForm, self).__init__(*args, **kwargs)
+        self.helper.layout.insert(-1, HTML(
+            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
+        self.helper.layout.insert(-1, Submit('cancel',
+                                             'Cancel', css_class='btn-outline-danger'))
 
 
 class LastPaymentForm(PaymentForm):
@@ -199,22 +196,19 @@ class LastPaymentCreateForm(LastPaymentForm):
         return data
 
 
-class LastPaymentUpdateForm(LastPaymentForm):
-    def __init__(self, *args, **kwargs):
-        super(LastPaymentUpdateForm, self).__init__(*args, **kwargs)
-        self.helper.layout[-2] = HTML(
-            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> ')
-        self.helper.layout.insert(-1, Submit('cancel',
-                                             'Cancel', css_class='btn-outline-danger'))
-
-        for name, field in self.fields.items():
-            field.disabled = True
-
-
-class LastPaymentDetailForm(LastPaymentCreateForm):
+class LastPaymentDetailForm(LastPaymentForm):
     def __init__(self, *args, **kwargs):
         super(LastPaymentDetailForm, self).__init__(*args, **kwargs)
         self.helper.layout.pop(-2)
 
         for name, field in self.fields.items():
             field.disabled = True
+
+
+class LastPaymentUpdateForm(LastPaymentDetailForm):
+    def __init__(self, *args, **kwargs):
+        super(LastPaymentUpdateForm, self).__init__(*args, **kwargs)
+        self.helper.layout.insert(-1, HTML(
+            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
+        self.helper.layout.insert(-1, Submit('cancel',
+                                             'Cancel', css_class='btn-outline-danger'))

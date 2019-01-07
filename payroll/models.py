@@ -15,23 +15,25 @@ class Payment(models.Model):
     pay_date = models.DateField(verbose_name='Pay Date')
 
     # Payments
-    basic_salary = models.FloatField(verbose_name='Basic Salary')
+    basic_salary = models.FloatField(default=0, verbose_name='Basic Salary')
     allowance = models.FloatField(blank=True, default=0)
     other_payments = models.FloatField(
         blank=True, default=0, verbose_name='Others')
-    total_payments = models.FloatField(verbose_name='Total')
+    total_payments = models.FloatField(default=0, verbose_name='Total')
 
     # Deductions
-    np_leave = models.FloatField(verbose_name='No Pay Leaves')
+    np_leave = models.FloatField(default=0, verbose_name='No Pay Leaves')
     other_deductions = models.FloatField(
         blank=True, default=0, verbose_name='Others')
-    total_deductions = models.FloatField(verbose_name='Total')
+    total_deductions = models.FloatField(default=0, verbose_name='Total')
 
     # MPF
-    mpf_employer = models.FloatField(verbose_name='MPF Employer Contribution')
-    mpf_employee = models.FloatField(verbose_name='MPF Employee Contribution')
+    mpf_employer = models.FloatField(
+        default=0, verbose_name='MPF Employer Contribution')
+    mpf_employee = models.FloatField(
+        default=0, verbose_name='MPF Employee Contribution')
 
-    net_pay = models.FloatField(verbose_name='Net Pay')
+    net_pay = models.FloatField(default=0, verbose_name='Net Pay')
     status = models.CharField(
         max_length=10, choices=choices.STATUS_CHOICES, default='PA', blank=True)
 
@@ -49,8 +51,8 @@ class Payment(models.Model):
 
     @property
     def third_month(self):
-        return 60 <= (self.period_end - self.user.date_joined).days + 1 < 90
+        return 60 <= (self.period_end - self.user.date_joined.date()).days + 1 < 90
 
     @property
     def start_late(self):
-        return self.period_start < self.user.date_joined
+        return self.period_start < self.user.date_joined.date()

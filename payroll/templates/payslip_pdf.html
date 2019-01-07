@@ -41,6 +41,14 @@
       width: 19cm;
     }
 
+    .float-right {
+      float: right;
+    }
+
+    .float-left {
+      float: left;
+    }
+
     #logo {
       height: 80px;
       width: 95px;
@@ -51,6 +59,7 @@
     }
 
     div .payslip {
+      clear: both;
       margin-top: 20px;
       margin-bottom: 10px;
       /* border-bottom: solid black; */
@@ -107,30 +116,30 @@
       PRIVATE AND CONFIDENTIAL
     </div>
     <div class="text-center payslip">
+      {% if p.is_last %}
+      <h2>LAST PAYMENT</h2>
+      {% else %}
       <h2>Payslip</h2>
+      {% endif %}
     </div>
     <table class="table1">
       <tr>
         <td>Employee ID:</td>
-        <td>{{p.employee.staff_no}}</td>
+        <td>{{p.user.staff_id}}</td>
         <td>Company:</td>
         <td>Sky Wise Hong Kong Limited</td>
       </tr>
       <tr>
         <td>Employee Name:</td>
-        <td>{{p.employee.last_name}} {{p.employee.first_name}}</td>
+        <td>{{p.user.get_name}}</td>
         <td>Department:</td>
         <td>
-          {% if p.employee.deparment %}
-          {{p.employee.deparment}}
-          {% else %}
-          -
-          {% endif %}
+          {{p.user.department}}
         </td>
       </tr>
       <tr>
         <td>Date Joined:</td>
-        <td>{{p.employee.join_date|date:"d/m/Y"}}</td>
+        <td>{{p.user.date_joined|date:"d/m/Y"}}</td>
         <td>Pay Method:</td>
         <td>{{p.get_method_display}}</td>
       </tr>
@@ -138,13 +147,13 @@
         <td>Pay Period:</td>
         <td>{{p.period_start|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}}</td>
         <td>Bank:</td>
-        <td>{{p.employee.get_bank_display}}</td>
+        <td>{{p.user.get_bank_display}}</td>
       </tr>
       <tr>
         <td>Pay Date:</td>
         <td>{{p.pay_date|date:"d/m/Y"}}</td>
         <td>Bank Account:</td>
-        <td>{{p.employee.bank_acc}}</td>
+        <td>{{p.user.bank_acc}}</td>
       </tr>
     </table>
     {% for i in 'xx' %}
@@ -159,19 +168,22 @@
       </tr>
       <tr>
         <td>Basic Salary</td>
-        <td class="text-right">{{p.employee.salary|floatformat:2}}</td>
+        <td class="text-right">{{p.user.salary|floatformat:2}}</td>
         <td>MPF-Employee Mandatory Contribution</td>
         <td class="text-right">{{p.mpf_employee|floatformat:2}}</td>
       </tr>
       <tr>
-        <!-- Allowance >> Others -->
+        <!-- Allowance >> Unused Leaves >> Others -->
         {% if p.allowance %}
         <td>Allowance</td>
         <td class="text-right">{{p.allowance|floatformat:2}}</td>
+        {% elif p.leaves_unused %}
+        <td>Unused Annual Leaves of {{p.leaves_unused}} Days </td>
+        <td class="text-right">{{p.leaves_compensation|floatformat:2}}</td>
         {% elif p.other_payments %}
         <td>Others</td>
         <td class="text-right">{{p.other_payments|floatformat:2}}</td>
-        {% else %}
+        {% elif p.np_leave or p.other_deductions %}
         <td></td>
         <td class="text-right"></td>
         {% endif %}
@@ -192,14 +204,16 @@
         {% endif %}
       </tr>
       <tr>
-        <!-- Allowance >> Others -->
-        {% if p.allowance and p.other_payments %}
+        <!-- Allowance >> Unused Leaves >> Others -->
+        {% if p.allowance and p.leaves_unused %}
+        <td>Unused Annual Leaves of {{p.leaves_unused}} Days </td>
+        <td class="text-right">{{p.leaves_compensation|floatformat:2}}</td>
+        {% elif p.other_payments %}
         <td>Others</td>
         <td class="text-right">{{p.other_payments|floatformat:2}}</td>
-        {% elif p.np_leave and p.other_deductions %}
+        {% elif p.np_leave or p.other_deductions %}
         <td></td>
         <td class="text-right"></td>
-        {% else %}
         {% endif %}
 
         <!-- No Pay Leaves >> Others -->
@@ -207,6 +221,16 @@
         <td>Others</td>
         <td class="text-right">{{p.other_deductions|floatformat:2}}</td>
         {% endif %}
+      </tr>
+      <tr>
+        <!-- Allowance >> Unused Leaves >> Others -->
+        {% if p.allowance and p.leaves_unused and p.other_payments %}
+        <td>Others</td>
+        <td class="text-right">{{p.other_payments|floatformat:2}}</td>
+        {% endif %}
+
+        <td></td>
+        <td class="text-right"></td>
       </tr>
       <tr>
         <td class="text-right">Total</td>
@@ -221,6 +245,7 @@
         <td class="text-right">{{p.net_pay|floatformat:2}}</td>
       </tr>
     </table>
+    {% if not p.is_last %}
     <table class="table3">
       <tr>
         <th colspan="2">MPT Contribution - Current Month</th>
@@ -230,7 +255,7 @@
         <td>Employer Contribution</td>
         <td>
           {% if p.third_month %}
-          ({{p.employee.join_date|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}})
+          ({{p.user.date_joined|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}})
           {% else %}
           ({{p.period_start|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}})
           {% endif %}
@@ -243,6 +268,7 @@
         <td class="text-right">{{p.mpf_employee|floatformat:2}}</td>
       </tr>
     </table>
+    {% endif %}
     <div class="footer">
       <table class="table4">
         <tr>

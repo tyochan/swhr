@@ -1,6 +1,6 @@
-function getAnnualLeave() {
+function annual_leave_calculation() {
   $.ajax({
-    url: "ajax/getLeave",
+    url: "ajax/annual_leave_calculation",
     data: {
       'date_joined': getStartDateText(),
     },

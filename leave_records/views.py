@@ -1,5 +1,6 @@
 # Views
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Models
 from .models import Leave
@@ -13,10 +14,14 @@ from . import forms
 from django.http import HttpResponseRedirect
 
 # Utils
+from django.contrib.auth.decorators import login_required
 from . import choices
+from django_ajax.decorators import ajax
+import datetime
+from swhr import utils
 
 
-class IndexView(ListView):
+class IndexView(LoginRequiredMixin, ListView):
     template_name = 'leave_records.html'
     context_object_name = 'leaves'
     paginate_by = 13
@@ -36,8 +41,8 @@ class IndexView(ListView):
                   (staff_id, name, type, day_type, status))
             return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
                                                            Q(user__staff_id__contains=staff_id),
-                                                           Q(user__last_name__contains=name) |
-                                                           Q(user__first_name__contains=name),
+                                                           Q(user__last_name__contains=name)
+                                                           | Q(user__first_name__contains=name),
                                                            Q(type__contains=type),
                                                            Q(day_type__contains=day_type),
                                                            Q(status__contains=status),)
@@ -107,3 +112,20 @@ class LeaveDetailView(UpdateView):
     # Prevent any update
     def form_valid(self, form):
         return HttpResponseRedirect("/leave_records/")
+
+
+@ajax
+def leave_calculation(request):
+    start_date = datetime.datetime.strptime(
+        request.GET['start_date'], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(
+        request.GET['end_date'], '%Y-%m-%d')
+
+    days_spend = utils.period_spend_days(start_date, end_date)
+
+    if not days_spend:  # Broken period
+        days_spend = 0
+    elif days_spend == 1:  # same day
+        days_spend = 1 if request.GET['day_type'] == 'FD' else 0.5
+
+    return {'days_spend': days_spend}
