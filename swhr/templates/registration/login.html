@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load staticfiles %}
 {% block content %}
 
 {% if form.errors %}
@@ -18,22 +18,27 @@
   {% endif %}
 </div>
 {% endif %}
-<form method="post" action="{% url 'login' %}" class="mt-2">
-  {% csrf_token %}
-  <div class="form-group form-row">
-    <label for="username" class="col-sm-1 col-form-label">Username:</label>
-    <input type="text" name="username" class="form-control col-sm-2" id="id_username" autofocus>
+<div class="container col-sm-4 border rounded" style="top:60px; background-color: darkgray;">
+  <img class="card-img-top text-center" src="{% static 'images/logo_g.png' %}" alt="Sky Wise HR">
+  <h3 class="text-center">Sky Wise HR System</h3>
+  <div class="card-body">
+    <form method="post" action="{% url 'login' %}" class="mt-2">
+      {% csrf_token %}
+      <div class="form-group form-row">
+        <label for="username" class="col-sm-5 col-form-label">Username:</label>
+        <input type="text" name="username" class="form-control col-sm-7" id="id_username" autofocus>
+      </div>
+      <div class="form-group form-row">
+        <label for="password" class="col-sm-5 col-form-label">Password:</label>
+        <input type="password" name="password" class="form-control  col-sm-7" id="id_password">
+      </div>
+      <div class="form-group form-row">
+        <input type="submit" value="Login" class="btn btn-primary btn-block col-sm-3 float-right">
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+    </form>
   </div>
-  <div class="form-group form-row">
-    <label for="password" class="col-sm-1 col-form-label">Password:</label>
-    <input type="password" name="password" class="form-control  col-sm-2" id="id_password">
-    <!-- <small id="usernameHelp" class="form-text text-muted">Use your Staff ID as username.</small> -->
-  </div>
-  <div class="form-group form-row">
-    <input type="submit" value="Login" class="btn btn-primary btn-block col-sm-3">
-  </div>
-  <input type="hidden" name="next" value="{{ next }}">
-</form>
+</div>
 
 
 {# Assumes you setup the password_reset view in your URLconf #}

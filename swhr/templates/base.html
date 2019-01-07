@@ -21,11 +21,11 @@
   <title>Sky Wise HR System</title>
 </head>
 
-<body>
+<body {% if not request.user.is_authenticated %} style="background-color:#212529" {% endif %}>
+  {% if request.user.is_authenticated %}
   {% block navbar %}
   <nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top">
-    <a class="navbar-brand" href="{% if request.user.is_authenticated %}{% url 'personal_details:index' %}{% endif %}"><img src="{% static 'images/logo_g.png' %}" alt="SkyWiseHR" id="logo"></a>
-    {% if request.user.is_authenticated %}
+    <a class="navbar-brand" href="{% url 'personal_details:index' %}"><img src="{% static 'images/logo_g.png' %}" alt="SkyWiseHR" id="logo"></a>
     <ul class="navbar-nav nav">
       <li class="nav-item {% if request.resolver_match.app_name == 'personal_details' %}active{% endif %}">
         <a class="nav-link" href="{% url 'personal_details:index' %}">
@@ -52,9 +52,9 @@
         </a>
       </li>
     </ul>
-    {% endif %}
   </nav>
   {% endblock %}
+  {% endif %}
 
   <div class="container-fluid">
     {% block content %}Temporary content{% endblock %}
