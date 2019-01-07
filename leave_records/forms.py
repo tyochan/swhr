@@ -28,9 +28,11 @@ class LeaveForm(ModelForm):
         self.helper.layout = Layout(
             Row(
                 Column('user', css_class='form-group col-md-3'),
-                Column('day_type', css_class='form-group col-md-1', readonly=True),
+                Column(Field('day_type'),
+                       css_class='form-group col-md-1'),
                 Column('start_date', css_class='form-group col-md-1'),
-                Column('end_date', css_class='form-group col-md-1'),
+                Column(Field('end_date', readonly=True),
+                       css_class='form-group col-md-1'),
                 css_class='form-row'
             ),
             Row(
@@ -52,6 +54,7 @@ class LeaveForm(ModelForm):
         )
 
         # Avaliabiility of field (can't enable by js if disabled)
+        self.fields['day_type'].disabled = True
         self.fields['status'].disabled = True
 
 

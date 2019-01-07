@@ -24,7 +24,8 @@
 <body>
   {% block navbar %}
   <nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top">
-    <a class="navbar-brand" href="{% url 'personal_details:index' %}"><img src="{% static 'images/logo_g.png' %}" alt="SkyWiseHR" id="logo"></a>
+    <a class="navbar-brand" href="{% if request.user.is_authenticated %}{% url 'personal_details:index' %}{% endif %}"><img src="{% static 'images/logo_g.png' %}" alt="SkyWiseHR" id="logo"></a>
+    {% if request.user.is_authenticated %}
     <ul class="navbar-nav nav">
       <li class="nav-item {% if request.resolver_match.app_name == 'personal_details' %}active{% endif %}">
         <a class="nav-link" href="{% url 'personal_details:index' %}">
@@ -41,6 +42,17 @@
         </a>
       </li>
     </ul>
+    <ul class="navbar-nav nav ml-auto">
+      <li class="nav-item active">
+        <span class="nav-link">{{request.user.get_name}}</span>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}">
+          Logout
+        </a>
+      </li>
+    </ul>
+    {% endif %}
   </nav>
   {% endblock %}
 

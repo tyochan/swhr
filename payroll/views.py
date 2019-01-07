@@ -1,5 +1,6 @@
 # Views
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Models
 from .models import Payment
@@ -18,13 +19,14 @@ from django.http import HttpResponseRedirect
 import datetime
 import calendar
 from swhr import constant
+from django.contrib.auth.decorators import login_required
 from django_ajax.decorators import ajax
 from django_weasyprint import WeasyTemplateResponseMixin
 from . import choices
 from swhr import utils
 
 
-class IndexView(ListView):
+class IndexView(LoginRequiredMixin, ListView):
     template_name = 'payroll.html'
     context_object_name = 'payments'
     paginate_by = 13
@@ -44,8 +46,8 @@ class IndexView(ListView):
                   (staff_id, name, status, is_last))
 
             return Payment.objects.order_by(order_by).filter(Q(user__staff_id__contains=staff_id),
-                                                             Q(user__last_name__contains=name) |
-                                                             Q(user__first_name__contains=name),
+                                                             Q(user__last_name__contains=name)
+                                                             | Q(user__first_name__contains=name),
                                                              Q(status__contains=status),
                                                              Q(is_last=is_last),)
         else:
@@ -71,14 +73,14 @@ class IndexView(ListView):
         return context
 
 
-class PaymentCreateView(CreateView):
+class PaymentCreateView(LoginRequiredMixin, CreateView):
     form_class = forms.PaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
 
-class PaymentUpdateView(UpdateView):
+class PaymentUpdateView(LoginRequiredMixin, UpdateView):
     form_class = forms.PaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
@@ -93,14 +95,14 @@ class PaymentUpdateView(UpdateView):
         return HttpResponseRedirect("/payroll/")
 
 
-class PaymentDetailView(UpdateView):
+class PaymentDetailView(LoginRequiredMixin, UpdateView):
     form_class = forms.PaymentDetailForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
 
-class PaymentPDFView(DetailView, WeasyTemplateResponseMixin):
+class PaymentPDFView(LoginRequiredMixin, DetailView, WeasyTemplateResponseMixin):
     model = Payment
     context_object_name = 'p'
     template_name = 'payslip_pdf.html'
@@ -108,14 +110,14 @@ class PaymentPDFView(DetailView, WeasyTemplateResponseMixin):
     pdf_attachment = False
 
 
-class LastPaymentCreateView(CreateView):
+class LastPaymentCreateView(LoginRequiredMixin, CreateView):
     form_class = forms.LastPaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
 
-class LastPaymentUpdateView(UpdateView):
+class LastPaymentUpdateView(LoginRequiredMixin, UpdateView):
     form_class = forms.LastPaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
@@ -135,7 +137,7 @@ class LastPaymentUpdateView(UpdateView):
         return HttpResponseRedirect("/payroll/")
 
 
-class LastPaymentDetailView(UpdateView):
+class LastPaymentDetailView(LoginRequiredMixin, UpdateView):
     form_class = forms.LastPaymentDetailForm
     model = Payment
     template_name = 'form_payment.html'
@@ -147,15 +149,15 @@ class LastPaymentDetailView(UpdateView):
         return context
 
 
-class LastPaymentPDFView(DetailView, WeasyTemplateResponseMixin):
+class LastPaymentPDFView(LoginRequiredMixin, DetailView, WeasyTemplateResponseMixin):
     model = Payment
     context_object_name = 'p'
-    template_name = 'last_payslip_pdf.html'
+    template_name = 'payslip_pdf.html'
     pdf_filename = 'last_payslip.pdf'
     pdf_attachment = False
 
 
-def limit_leave_period(start_date, end_date, period_start, period_end):
+def limit_period(start_date, end_date, period_start, period_end):
     if start_date < period_start:
         start_date = period_start
     if end_date > period_end:
@@ -192,6 +194,7 @@ def get_mpf(salary, days_passed):
     return mpf_employer, mpf_employee
 
 
+@login_required
 @ajax
 def payment_calculation(request):
     user = User.objects.get(id=request.GET['user_id'])
@@ -218,7 +221,7 @@ def payment_calculation(request):
                                         start_date__lte=period_end, end_date__gte=period_start, type='NL').exclude(status='RE')
     for l in leaves:
         # Limit leave in within period and Calculate spend days
-        spend = utils.leave_spend_days(limit_leave_period(
+        spend = utils.period_spend_days(limit_period(
             l.start_date, l.end_date, period_start, period_end))
         period_work -= spend
 
@@ -232,11 +235,7 @@ def payment_calculation(request):
     # Unused Annual Leaves if last payment
     unused_leave_pay, unused_leave_days = 0, 0
     if request.GET['is_last'] == 'True':
-        year_end = datetime.datetime(period_end.year, 12, 31)
-        workdays_after_end = (year_end - period_end).days
-        days_of_year = 366 if calendar.isleap(period_end.year) else 365
-        future_leave_days = round(
-            workdays_after_end / days_of_year * 15 * 2) / 2
+        future_leave_days = utils.annual_leave_to_year_end(period_end)
         unused_leave_days = user.annual_leave - future_leave_days
 
     # Total Payment = Basic Salary + Allowance + Others

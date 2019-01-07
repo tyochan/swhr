@@ -24,8 +24,7 @@ function payment_calculation() {
       $('#id_total_payments').val(data.total_payments.toFixed(2))
       $('#id_total_deductions').val(data.total_deductions.toFixed(2))
 
-      array = location.pathname.split("/")
-      if (array.indexOf("last") > -1) {
+      if (name_in_path("last")) {
         $('#id_date_joined').val(data.date_joined)
         if (data.date_joined > getStartDate()) {
           $('#id_period_end').datepicker("setStartDate", data.join_date)

@@ -27,10 +27,7 @@ $().ready(function() {
     enable($("#id_last_date"))
   }
 
-  array = location.pathname.split("/")
-  if (array.indexOf("create") > -1) {
-    getAnnualLeave()
-  }
+  $("#id_date_joined").datepicker().trigger("changeDate")
 });
 
 // Toggle last_date
@@ -45,5 +42,7 @@ $("#id_is_active").on('click', function() {
 
 // Join dateinput
 $("#id_date_joined").datepicker().on("changeDate", function(e) {
-  getAnnualLeave()
+  if (name_in_path("create")) {
+    annual_leave_calculation()
+  }
 })
