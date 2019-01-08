@@ -1,41 +1,43 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block content %}
-
-{% if form.errors %}
-<div class="alert alert-danger mt-1 mb-1" role="alert">
-  Your username and password didn't match. Please try again.
-</div>
-{% endif %}
-
-{% if next %}
-<div class="alert alert-warning mt-1" role="alert">
-  {% if user.is_authenticated %}
-  Your account doesn't have access to this page. To proceed,
-  please login with an account that has access.
-  {% else %}
-  Please login to proceed.
-  {% endif %}
-</div>
-{% endif %}
-<div class="container col-sm-4 border rounded" style="top:60px; background-color: darkgray;">
-  <img class="card-img-top text-center" src="{% static 'images/logo_g.png' %}" alt="Sky Wise HR">
-  <h3 class="text-center">Sky Wise HR System</h3>
-  <div class="card-body">
-    <form method="post" action="{% url 'login' %}" class="mt-2">
+<div class="container col-sm-4 rounded" style="top:40px; background-color: #fff; color:#555555;">
+  <div class="p-3 container">
+    <form method="post" action="{% url 'login' %}" class="mt-2 text-center">
       {% csrf_token %}
-      <div class="form-group form-row">
-        <label for="username" class="col-sm-5 col-form-label">Username:</label>
-        <input type="text" name="username" class="form-control col-sm-7" id="id_username" autofocus>
+      <img class="" src="{% static 'images/logo_g.png' %}" alt="Sky Wise HR" style="padding:4rem; width:428px">
+      <h3 class="" style="font-family: Raleway-SemiBold;">SKY WISE HR SYSTEM</h3>
+      <div class="card-body">
+        <div class="form-group form-row">
+          <label for="username" class="col-sm-4 col-form-label">USERNAME</label>
+          <div class="col-sm-8">
+            <input type="text" name="username" class="form-control {% if form.errors %}is-invalid{% endif %}" id="id_username" autofocus>
+          </div>
+        </div>
+        <div class="form-group form-row">
+          <label for="password" class="col-sm-4 col-form-label">PASSWORD</label>
+          <div class="col-sm-8">
+            <input type="password" name="password" class="form-control {% if form.errors %}is-invalid{% endif %}" id="id_password">
+          </div>
+        </div>
+        <div class="form-group {% if form.errors %}is-invalid{% endif %}">
+          {% if form.errors %}
+          <small class="text-danger">Your username and password didn't match. Please try again.</small>
+          {% else %}
+          {% if next %}
+          <small class="text-info">
+            {% if user.is_authenticated %}
+            Your account doesn't have access to this page.
+            {% else %}
+            Please login to proceed this action.
+            {% endif %}
+          </small>
+          {% endif %}
+          {% endif %}
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
       </div>
-      <div class="form-group form-row">
-        <label for="password" class="col-sm-5 col-form-label">Password:</label>
-        <input type="password" name="password" class="form-control  col-sm-7" id="id_password">
-      </div>
-      <div class="form-group form-row">
-        <input type="submit" value="Login" class="btn btn-primary btn-block col-sm-3 float-right">
-      </div>
-      <input type="hidden" name="next" value="{{ next }}">
+      <input type="submit" value="LOGIN" class="btn btn-primary btn-block col-sm-4 ml-auto mr-auto" style="border-radius: 27px">
     </form>
   </div>
 </div>

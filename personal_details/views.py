@@ -26,14 +26,13 @@ class IndexView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         order_by = self.request.GET.get('order_by', 'last_name')
-
-        # Filtering
-        staff_id = self.request.GET.get('staff_id', '')
-        name = self.request.GET.get('name', '')
-        # date_joined = self.request.GET.get('date_joined', '')
-        is_active = bool(self.request.GET.get('is_active', 'True'))
-
         if self.request.user.is_superuser:
+            # Filtering
+            staff_id = self.request.GET.get('staff_id', '')
+            name = self.request.GET.get('name', '')
+            # date_joined = self.request.GET.get('date_joined', '')
+            is_active = bool(self.request.GET.get('is_active', 'True'))
+
             if bool(staff_id + name):  # + date_joined
                 print('Staff Filtering: %s %s %s %s' %
                       (staff_id, name, date_joined, is_active))
@@ -76,6 +75,13 @@ class UserCreateView(LoginRequiredMixin, CreateView):
 
 class UserUpdateView(LoginRequiredMixin, UpdateView):
     form_class = forms.UserUpdateForm
+    model = User
+    slug = 'staff_id'
+    template_name = 'form_employee.html'
+
+
+class NormalUserUpdateView(LoginRequiredMixin, UpdateView):
+    form_class = forms.NormalUserUpdateForm
     model = User
     slug = 'staff_id'
     template_name = 'form_employee.html'

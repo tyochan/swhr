@@ -11,9 +11,6 @@ from crispy_forms.bootstrap import AppendedText, PrependedText
 
 
 class LeaveForm(ModelForm):
-    user = ModelChoiceField(
-        label='Employee', queryset=User.objects.filter(is_staff=False, is_active=True))
-
     class Meta:
         model = Leave
         fields = '__all__'
@@ -59,6 +56,9 @@ class LeaveForm(ModelForm):
 
 
 class LeaveCreateForm(LeaveForm):
+    user = ModelChoiceField(
+        label='Employee', queryset=User.objects.filter(is_active=True))
+
     def __init__(self, *args, **kwargs):
         super(LeaveCreateForm, self).__init__(*args, **kwargs)
 
@@ -91,6 +91,17 @@ class LeaveCreateForm(LeaveForm):
                     raise ValidationError(
                         'Leave overlapping with [%(leave)s]', params={'leave': l})
         return data
+
+
+class NormalLeaveCreateForm(LeaveCreateForm):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
+        super(NormalLeaveCreateForm, self).__init__(*args, **kwargs)
+        self.fields['user'] = ModelChoiceField(
+            label='Employee', queryset=User.objects.filter(id=self.user.id))
+
+        self.fields['user'].initial = self.user.id
+        self.fields['user'].disabled = True
 
 
 class LeaveUpdateForm(LeaveForm):
