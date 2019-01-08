@@ -28,26 +28,28 @@ class IndexView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         order_by = self.request.GET.get('order_by', '-end_date')
+        if self.request.user.is_superuser:
+            # Filtering
+            staff_id = self.request.GET.get('staff_id', '')
+            name = self.request.GET.get('name', '')
+            type = self.request.GET.get('type', '')
+            day_type = self.request.GET.get('day_type', '')
+            status = self.request.GET.get('status', '')
 
-        # Filtering
-        staff_id = self.request.GET.get('staff_id', '')
-        name = self.request.GET.get('name', '')
-        type = self.request.GET.get('type', '')
-        day_type = self.request.GET.get('day_type', '')
-        status = self.request.GET.get('status', '')
-
-        if bool(staff_id + name + type + day_type + status):
-            print('Leave Filtering: %s %s %s %s %s' %
-                  (staff_id, name, type, day_type, status))
-            return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
-                                                           Q(user__staff_id__contains=staff_id),
-                                                           Q(user__last_name__contains=name)
-                                                           | Q(user__first_name__contains=name),
-                                                           Q(type__contains=type),
-                                                           Q(day_type__contains=day_type),
-                                                           Q(status__contains=status),)
+            if bool(staff_id + name + type + day_type + status):
+                print('Leave Filtering: %s %s %s %s %s' %
+                      (staff_id, name, type, day_type, status))
+                return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
+                                                               Q(user__staff_id__contains=staff_id),
+                                                               Q(user__last_name__contains=name)
+                                                               | Q(user__first_name__contains=name),
+                                                               Q(type__contains=type),
+                                                               Q(day_type__contains=day_type),
+                                                               Q(status__contains=status),)
+            else:
+                return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),)
         else:
-            return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),)
+            return Leave.objects.order_by(order_by).filter(user__id=self.request.user.id)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -83,6 +85,17 @@ class LeaveCreateView(CreateView):
         user.annual_leave -= form.cleaned_data['spend']
         user.save()
         return super().form_valid(form)
+
+
+class NormalLeaveCreateView(LeaveCreateView):
+    form_class = forms.NormalLeaveCreateForm
+    model = Leave
+    template_name = 'form_leave.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(NormalLeaveCreateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 class LeaveUpdateView(UpdateView):

@@ -28,7 +28,7 @@ def period_spend_days(start_date, end_date):
 
 def annual_leave_to_year_end(start_date):
     end_date = datetime.date(start_date.year, 12, 31)
-    workdays = (end_date - start_date.date()).days + 1
+    workdays = (end_date - start_date).days + 1
     days_of_year = 366 if calendar.isleap(end_date.year) else 365
     annual_leave = round((workdays / days_of_year * 15) * 2) / 2
     return annual_leave
