@@ -1,6 +1,6 @@
 # Views
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 
 # Models
 from .models import Payment
@@ -53,7 +53,7 @@ class IndexView(LoginRequiredMixin, ListView):
             else:
                 return Payment.objects.order_by(order_by)
         else:
-            return Payment.objects.order_by(order_by).filter(user__id=self.request.user.id)
+            return Payment.objects.order_by(order_by).filter(user__id=self.request.user.id).exclude(status='CC')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -75,18 +75,24 @@ class IndexView(LoginRequiredMixin, ListView):
         return context
 
 
-class PaymentCreateView(LoginRequiredMixin, CreateView):
+class PaymentCreateView(PermissionRequiredMixin, CreateView):
     form_class = forms.PaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+    permission_required = 'payroll.create_payment'
 
 
-class PaymentUpdateView(LoginRequiredMixin, UpdateView):
+class PaymentUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.PaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     # Updating payment status
     def form_valid(self, form):
@@ -96,34 +102,48 @@ class PaymentUpdateView(LoginRequiredMixin, UpdateView):
             payment.save()
         return HttpResponseRedirect("/payroll/")
 
+    def test_func(self):
+        payment = Payment.objects.get(id=self.kwargs['pk'])
+        return (payment.user.id == self.request.user.id or self.request.user.is_superuser) and payment.status == 'PD'
 
-class PaymentDetailView(LoginRequiredMixin, UpdateView):
+
+class PaymentDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.PaymentDetailForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
+    def test_func(self):
+        payment = Payment.objects.get(id=self.kwargs['pk'])
+        return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
-class PaymentPDFView(LoginRequiredMixin, DetailView, WeasyTemplateResponseMixin):
+
+class PaymentPDFView(UserPassesTestMixin, DetailView, WeasyTemplateResponseMixin):
     model = Payment
     context_object_name = 'p'
     template_name = 'payslip_pdf.html'
     pdf_filename = 'payslip.pdf'
     pdf_attachment = False
 
+    def test_func(self):
+        payment = Payment.objects.get(id=self.kwargs['pk'])
+        return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
-class LastPaymentCreateView(LoginRequiredMixin, CreateView):
+
+class LastPaymentCreateView(PermissionRequiredMixin, CreateView):
     form_class = forms.LastPaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+    permission_required = 'payroll.create_payment'
 
 
-class LastPaymentUpdateView(LoginRequiredMixin, UpdateView):
+class LastPaymentUpdateView(PermissionRequiredMixin, UpdateView):
     form_class = forms.LastPaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+    permission_required = 'payroll.change_payment'
 
     def get_context_data(self, **kwargs):
         context = super(LastPaymentUpdateView, self).get_context_data(**kwargs)
@@ -139,7 +159,7 @@ class LastPaymentUpdateView(LoginRequiredMixin, UpdateView):
         return HttpResponseRedirect("/payroll/")
 
 
-class LastPaymentDetailView(LoginRequiredMixin, UpdateView):
+class LastPaymentDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.LastPaymentDetailForm
     model = Payment
     template_name = 'form_payment.html'
@@ -150,13 +170,21 @@ class LastPaymentDetailView(LoginRequiredMixin, UpdateView):
         context['date_joined'] = context['object'].user.date_joined
         return context
 
+    def test_func(self):
+        payment = Payment.objects.get(id=self.kwargs['pk'])
+        return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
-class LastPaymentPDFView(LoginRequiredMixin, DetailView, WeasyTemplateResponseMixin):
+
+class LastPaymentPDFView(UserPassesTestMixin, DetailView, WeasyTemplateResponseMixin):
     model = Payment
     context_object_name = 'p'
     template_name = 'payslip_pdf.html'
     pdf_filename = 'last_payslip.pdf'
     pdf_attachment = False
+
+    def test_func(self):
+        payment = Payment.objects.get(id=self.kwargs['pk'])
+        return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
 
 def limit_period(start_date, end_date, period_start, period_end):

@@ -1,6 +1,6 @@
 # Views
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 
 # Models
 from .models import User
@@ -38,8 +38,8 @@ class IndexView(LoginRequiredMixin, ListView):
                       (staff_id, name, date_joined, is_active))
 
                 return User.objects.order_by(order_by).filter(Q(staff_id__contains=staff_id),
-                                                              Q(last_name__contains=name)
-                                                              | Q(first_name__contains=name),
+                                                              Q(last_name__contains=name) |
+                                                              Q(first_name__contains=name),
                                                               # Q(date_joined__contains=date_joined),
                                                               Q(is_active=is_active),
                                                               Q(is_staff=False),)
@@ -67,24 +67,27 @@ class IndexView(LoginRequiredMixin, ListView):
         return context
 
 
-class UserCreateView(LoginRequiredMixin, CreateView):
+class UserCreateView(PermissionRequiredMixin, CreateView):
     form_class = forms.UserCreateForm
     model = User
     template_name = 'form_employee.html'
+    permission_required = 'personal_details.create_user'
 
 
-class UserUpdateView(LoginRequiredMixin, UpdateView):
+class UserUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.UserUpdateForm
     model = User
     slug = 'staff_id'
     template_name = 'form_employee.html'
 
+    def test_func(self):
+        user = User.objects.get(slug=self.kwargs['slug'])
+        return (user.slug == self.request.user.slug and user.is_active) or self.request.user.is_superuser
 
-class NormalUserUpdateView(LoginRequiredMixin, UpdateView):
-    form_class = forms.NormalUserUpdateForm
-    model = User
-    slug = 'staff_id'
-    template_name = 'form_employee.html'
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 @ajax

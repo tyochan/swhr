@@ -79,11 +79,7 @@
           {% endif %}
         </td>
         <td>
-          {% if request.user.is_superuser %}
-          <a href="{% url 'personal_details:super_update_user' u.staff_id %}" class="btn btn-info" role="button">Edit Details</a>
-          {% else %}
           <a href="{% url 'personal_details:update_user' u.staff_id %}" class="btn btn-info" role="button">Edit Details</a>
-          {% endif %}
         </td>
       </tr>
       {% endfor %}

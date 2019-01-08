@@ -1,6 +1,6 @@
 # Views
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 
 # Models
 from .models import Leave
@@ -73,7 +73,7 @@ class IndexView(LoginRequiredMixin, ListView):
         return context
 
 
-class LeaveCreateView(CreateView):
+class LeaveCreateView(LoginRequiredMixin, CreateView):
     form_class = forms.LeaveCreateForm
     model = Leave
     template_name = 'form_leave.html'
@@ -86,22 +86,17 @@ class LeaveCreateView(CreateView):
         user.save()
         return super().form_valid(form)
 
-
-class NormalLeaveCreateView(LeaveCreateView):
-    form_class = forms.NormalLeaveCreateForm
-    model = Leave
-    template_name = 'form_leave.html'
-
     def get_form_kwargs(self):
-        kwargs = super(NormalLeaveCreateView, self).get_form_kwargs()
+        kwargs = super(LeaveCreateView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
 
 
-class LeaveUpdateView(UpdateView):
+class LeaveUpdateView(PermissionRequiredMixin, UpdateView):
     form_class = forms.LeaveUpdateForm
     model = Leave
     template_name = 'form_leave.html'
+    permission_required = ('leave_records.change_leave')
 
     # Updating annual leave quota and leave status
     def form_valid(self, form):
@@ -117,7 +112,7 @@ class LeaveUpdateView(UpdateView):
         return HttpResponseRedirect("/leave_records/")
 
 
-class LeaveDetailView(UpdateView):
+class LeaveDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.LeaveDetailForm
     model = Leave
     template_name = 'form_leave.html'
@@ -125,6 +120,10 @@ class LeaveDetailView(UpdateView):
     # Prevent any update
     def form_valid(self, form):
         return HttpResponseRedirect("/leave_records/")
+
+    def test_func(self):
+        leave = Leave.objects.get(id=self.kwargs['pk'])
+        return leave.user.id == self.request.user.id or self.request.user.is_superuser
 
 
 @ajax

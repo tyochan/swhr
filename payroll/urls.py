@@ -23,6 +23,4 @@ urlpatterns = [
     path('last/ajax/payment_calculation', views.payment_calculation),
 
     path('payslipPDF/<int:pk>', views.PaymentPDFView.as_view(), name='payslip_pdf'),
-    path('last/payslipPDF/<int:pk>',
-         views.LastPaymentPDFView.as_view(), name='last_payslip_pdf'),
 ]

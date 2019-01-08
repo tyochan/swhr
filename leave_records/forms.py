@@ -57,10 +57,17 @@ class LeaveForm(ModelForm):
 
 class LeaveCreateForm(LeaveForm):
     user = ModelChoiceField(
-        label='Employee', queryset=User.objects.filter(is_active=True))
+        label='Employee', queryset=User.objects.filter(is_active=True, is_staff=False))
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
         super(LeaveCreateForm, self).__init__(*args, **kwargs)
+        if not self.user.is_superuser:
+            self.fields['user'] = ModelChoiceField(
+                label='Employee', queryset=User.objects.filter(id=self.user.id))
+
+            self.fields['user'].initial = self.user.id
+            self.fields['user'].disabled = True
 
     def clean(self):
         data = super().clean()
@@ -93,29 +100,6 @@ class LeaveCreateForm(LeaveForm):
         return data
 
 
-class NormalLeaveCreateForm(LeaveCreateForm):
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user")
-        super(NormalLeaveCreateForm, self).__init__(*args, **kwargs)
-        self.fields['user'] = ModelChoiceField(
-            label='Employee', queryset=User.objects.filter(id=self.user.id))
-
-        self.fields['user'].initial = self.user.id
-        self.fields['user'].disabled = True
-
-
-class LeaveUpdateForm(LeaveForm):
-    def __init__(self, *args, **kwargs):
-        super(LeaveUpdateForm, self).__init__(*args, **kwargs)
-        self.helper.layout[-2] = Submit('approve',
-                                        'Approve', css_class="btn-outline-primary")
-        self.helper.layout.insert(-1, Submit('reject',
-                                             'Reject', css_class='btn-outline-danger'))
-
-        for name, field in self.fields.items():
-            field.disabled = True
-
-
 class LeaveDetailForm(LeaveForm):
     def __init__(self, *args, **kwargs):
         super(LeaveDetailForm, self).__init__(*args, **kwargs)
@@ -123,3 +107,12 @@ class LeaveDetailForm(LeaveForm):
 
         for name, field in self.fields.items():
             field.disabled = True
+
+
+class LeaveUpdateForm(LeaveDetailForm):
+    def __init__(self, *args, **kwargs):
+        super(LeaveUpdateForm, self).__init__(*args, **kwargs)
+        self.helper.layout.insert(-1, Submit('approve',
+                                             'Approve', css_class="btn-outline-primary"))
+        self.helper.layout.insert(-1, Submit('reject',
+                                             'Reject', css_class='btn-outline-danger'))
