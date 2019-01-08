@@ -37,7 +37,8 @@ class User(AbstractUser):
                                   default='-', blank=True)
     title = models.CharField(max_length=10, default='-', blank=True)
 
-    annual_leave = models.FloatField(verbose_name='Annual Leave')
+    annual_leave = models.FloatField(
+        null=True, blank=True, verbose_name='Annual Leave')
 
     bank = models.CharField(
         max_length=50, choices=choices.BANK_LIST, default='024', blank=True)

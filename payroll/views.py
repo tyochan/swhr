@@ -33,25 +33,27 @@ class IndexView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         order_by = self.request.GET.get('order_by', '-period_start')
+        if self.request.user.is_superuser:
+            # Filtering
+            staff_id = self.request.GET.get('staff_id', '')
+            name = self.request.GET.get('name', '')
+            status = self.request.GET.get('status', '')
+            is_last = bool(self.request.GET.get('is_last', ''))
 
-        # Filtering
-        staff_id = self.request.GET.get('staff_id', '')
-        name = self.request.GET.get('name', '')
-        status = self.request.GET.get('status', '')
-        is_last = bool(self.request.GET.get('is_last', ''))
+            if bool(staff_id + name + status + self.request.GET.get('is_last', '')):
 
-        if bool(staff_id + name + status + self.request.GET.get('is_last', '')):
+                print('Payment Filtering: %s %s %s %s' %
+                      (staff_id, name, status, is_last))
 
-            print('Payment Filtering: %s %s %s %s' %
-                  (staff_id, name, status, is_last))
-
-            return Payment.objects.order_by(order_by).filter(Q(user__staff_id__contains=staff_id),
-                                                             Q(user__last_name__contains=name)
-                                                             | Q(user__first_name__contains=name),
-                                                             Q(status__contains=status),
-                                                             Q(is_last=is_last),)
+                return Payment.objects.order_by(order_by).filter(Q(user__staff_id__contains=staff_id),
+                                                                 Q(user__last_name__contains=name)
+                                                                 | Q(user__first_name__contains=name),
+                                                                 Q(status__contains=status),
+                                                                 Q(is_last=is_last),)
+            else:
+                return Payment.objects.order_by(order_by)
         else:
-            return Payment.objects.order_by(order_by)
+            return Payment.objects.order_by(order_by).filter(user__id=self.request.user.id)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -235,7 +237,7 @@ def payment_calculation(request):
     # Unused Annual Leaves if last payment
     unused_leave_pay, unused_leave_days = 0, 0
     if request.GET['is_last'] == 'True':
-        future_leave_days = utils.annual_leave_to_year_end(period_end)
+        future_leave_days = utils.annual_leave_to_year_end(period_end.date())
         unused_leave_days = user.annual_leave - future_leave_days
 
     # Total Payment = Basic Salary + Allowance + Others

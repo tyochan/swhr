@@ -21,7 +21,7 @@
   <title>Sky Wise HR System</title>
 </head>
 
-<body {% if not request.user.is_authenticated %} style="background-color:#212529" {% endif %}>
+<body {% if not request.user.is_authenticated %} style="background-color:#ebebeb" {% endif %}>
   {% if request.user.is_authenticated %}
   {% block navbar %}
   <nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top">
@@ -30,15 +30,20 @@
       <li class="nav-item {% if request.resolver_match.app_name == 'personal_details' %}active{% endif %}">
         <a class="nav-link" href="{% url 'personal_details:index' %}">
           <!-- <i class="fas fa-address-book"></i> -->
-          Personal Details</a>
+          <!-- Personal Details -->
+          PROFILE
+        </a>
       </li>
       <li class="nav-item {% if request.resolver_match.app_name == 'leave_records' %}active{% endif %}">
         <a class="nav-link" href="{% url 'leave_records:index' %}">
-          Leave Records</a>
+          <!-- Leave Records -->
+          LEAVE
+        </a>
       </li>
       <li class="nav-item {% if request.resolver_match.app_name == 'payroll' %}active{% endif %}">
         <a class="nav-link" href="{% url 'payroll:index' %}">
-          Payroll
+          <!-- Payroll -->
+          PAYROLL
         </a>
       </li>
     </ul>
@@ -48,7 +53,8 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{% url 'logout' %}">
-          Logout
+          <!-- Logout -->
+          LOGOUT
         </a>
       </li>
     </ul>

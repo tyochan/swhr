@@ -1,4 +1,4 @@
-from django.forms import ModelForm, ValidationError, DateInput, TextInput, PasswordInput, NumberInput
+from django.forms import ModelForm, ValidationError, DateInput, TextInput, PasswordInput, NumberInput, HiddenInput
 from django.contrib.auth import hashers
 
 # Models
@@ -134,3 +134,18 @@ class UserUpdateForm(UserForm):
             raise ValidationError(
                 'Last date is needed if staff is inactive.')
         return super().clean()
+
+
+class NormalUserUpdateForm(UserUpdateForm):
+    def __init__(self, *args, **kwargs):
+        super(NormalUserUpdateForm, self).__init__(*args, **kwargs)
+
+        self.fields['last_name'].disabled = True
+        self.fields['first_name'].disabled = True
+        self.fields['salary'].disabled = True
+        self.fields['annual_leave'].disabled = True
+        self.fields['last_date'].disabled = True
+        self.fields['is_active'].disabled = True
+
+        self.fields['last_date'].widget = HiddenInput()
+        self.fields['is_active'].widget = HiddenInput()
