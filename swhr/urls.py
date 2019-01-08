@@ -18,9 +18,6 @@ from django.urls import include, path
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 
-from django.conf import settings
-from django.conf.urls.static import static
-
 urlpatterns = [
     path('', RedirectView.as_view(url='/login/')),
     path('admin/', admin.site.urls),
@@ -31,4 +28,4 @@ urlpatterns = [
                                       namespace='personal_details')),
     path('leave_records/', include('leave_records.urls', namespace='leave_records')),
     path('payroll/', include('payroll.urls', namespace='payroll')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]

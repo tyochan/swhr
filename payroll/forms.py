@@ -150,11 +150,13 @@ class PaymentDetailForm(PaymentForm):
 
 class PaymentUpdateForm(PaymentDetailForm):
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
         super(PaymentUpdateForm, self).__init__(*args, **kwargs)
         self.helper.layout.insert(-1, HTML(
             '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
-        self.helper.layout.insert(-1, Submit('cancel',
-                                             'Cancel', css_class='btn-outline-danger'))
+        if self.user.is_superuser:
+            self.helper.layout.insert(-1, Submit('cancel',
+                                                 'Cancel', css_class='btn-outline-danger'))
 
 
 class LastPaymentForm(PaymentForm):

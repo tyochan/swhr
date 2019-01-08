@@ -119,6 +119,7 @@ class UserCreateForm(UserForm):
 
 class UserUpdateForm(UserForm):
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         self.helper.filter(Submit).wrap(
             Submit, 'Update', css_class="btn-outline-primary")
@@ -127,6 +128,17 @@ class UserUpdateForm(UserForm):
             attrs={'value': '******'})
         self.fields['password'].disabled = True
         self.fields['date_joined'].disabled = True
+
+        if not self.user.is_superuser:
+            self.fields['last_name'].disabled = True
+            self.fields['first_name'].disabled = True
+            self.fields['salary'].disabled = True
+            self.fields['annual_leave'].disabled = True
+            self.fields['last_date'].disabled = True
+            self.fields['is_active'].disabled = True
+
+            self.fields['last_date'].widget = HiddenInput()
+            self.fields['is_active'].widget = HiddenInput()
 
     def clean(self):
         data = super().clean()
