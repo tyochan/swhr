@@ -1,6 +1,7 @@
 # Views
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.contrib.auth import views as auth_views
 
 # Models
 from .models import User
@@ -10,10 +11,10 @@ from django.db.models import Q
 from . import forms
 
 # Response
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 
 # Utils
-from django.contrib.auth.decorators import login_required
 from django_ajax.decorators import ajax
 import datetime
 from swhr import utils
@@ -23,6 +24,11 @@ class IndexView(LoginRequiredMixin, ListView):
     template_name = 'personal_details.html'
     context_object_name = 'users'
     paginate_by = 13
+
+    def get(self, request, *args, **kwargs):
+        if not self.request.user.is_superuser:
+            return HttpResponseRedirect(reverse_lazy('personal_details:update_user', kwargs={'slug': self.request.user.slug}))
+        return super().get(request)
 
     def get_queryset(self):
         order_by = self.request.GET.get('order_by', 'last_name')
@@ -40,7 +46,6 @@ class IndexView(LoginRequiredMixin, ListView):
                 return User.objects.order_by(order_by).filter(Q(staff_id__contains=staff_id),
                                                               Q(last_name__contains=name) |
                                                               Q(first_name__contains=name),
-                                                              # Q(date_joined__contains=date_joined),
                                                               Q(is_active=is_active),
                                                               Q(is_staff=False),)
             else:
@@ -81,7 +86,7 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
     template_name = 'form_employee.html'
 
     def test_func(self):
-        user = User.objects.get(slug=self.kwargs['slug'])
+        user = self.get_object()
         return (user.slug == self.request.user.slug and user.is_active) or self.request.user.is_superuser
 
     def get_form_kwargs(self):

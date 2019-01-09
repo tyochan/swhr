@@ -1,4 +1,5 @@
 from django.forms import ModelForm, ValidationError, DateInput, TextInput, PasswordInput, NumberInput, HiddenInput
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import hashers
 
 # Models
@@ -130,6 +131,10 @@ class UserUpdateForm(UserForm):
         self.fields['date_joined'].disabled = True
 
         if not self.user.is_superuser:
+            self.helper.layout.insert(-1, HTML(
+                '<a href="{% url \'change_password\' %}" class="btn btn-outline-info" role="button">Change Password</a> '))
+            self.helper.layout.pop(-1)
+
             self.fields['last_name'].disabled = True
             self.fields['first_name'].disabled = True
             self.fields['salary'].disabled = True

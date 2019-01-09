@@ -49,11 +49,12 @@
     </ul>
     <ul class="navbar-nav nav ml-auto">
       <li class="nav-item active">
-        <span class="nav-link">{{request.user.slug}} {{request.user.get_name}}</span>
+        <a class="nav-link" href="{% url 'change_password' %}">
+          <span>{{request.user.slug}} {{request.user.get_name}}</span>
+        </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{% url 'logout' %}">
-          <!-- Logout -->
           LOGOUT
         </a>
       </li>

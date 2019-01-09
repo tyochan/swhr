@@ -92,7 +92,7 @@ DATABASES = {
 }
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'personal_details:index'
+LOGIN_REDIRECT_URL = 'leave_records:index'
 LOGOUT_REDIRECT_URL = 'login'
 
 # Password validation

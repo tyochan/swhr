@@ -100,11 +100,11 @@ class PaymentUpdateView(UserPassesTestMixin, UpdateView):
         if 'cancel' in self.request.POST:
             payment.status = 'CC'
             payment.save()
-        return HttpResponseRedirect("/payroll/")
+        return HttpResponseRedirect(self.get_success_url())
 
     def test_func(self):
-        payment = Payment.objects.get(id=self.kwargs['pk'])
-        return (payment.user.id == self.request.user.id or self.request.user.is_superuser) and payment.status == 'PD'
+        payment = self.get_object()
+        return (payment.user.id == self.request.user.id or self.request.user.is_superuser) and payment.status == 'PA'
 
 
 class PaymentDetailView(UserPassesTestMixin, UpdateView):
@@ -114,7 +114,7 @@ class PaymentDetailView(UserPassesTestMixin, UpdateView):
     success_url = reverse_lazy('payroll:index')
 
     def test_func(self):
-        payment = Payment.objects.get(id=self.kwargs['pk'])
+        payment = self.get_object()
         return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
 
@@ -126,7 +126,7 @@ class PaymentPDFView(UserPassesTestMixin, DetailView, WeasyTemplateResponseMixin
     pdf_attachment = False
 
     def test_func(self):
-        payment = Payment.objects.get(id=self.kwargs['pk'])
+        payment = self.get_object()
         return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
 
@@ -156,7 +156,7 @@ class LastPaymentUpdateView(PermissionRequiredMixin, UpdateView):
         if 'cancel' in self.request.POST:
             payment.status = 'CC'
             payment.save()
-        return HttpResponseRedirect("/payroll/")
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class LastPaymentDetailView(UserPassesTestMixin, UpdateView):
@@ -171,7 +171,7 @@ class LastPaymentDetailView(UserPassesTestMixin, UpdateView):
         return context
 
     def test_func(self):
-        payment = Payment.objects.get(id=self.kwargs['pk'])
+        payment = self.get_object()
         return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
 
@@ -183,7 +183,7 @@ class LastPaymentPDFView(UserPassesTestMixin, DetailView, WeasyTemplateResponseM
     pdf_attachment = False
 
     def test_func(self):
-        payment = Payment.objects.get(id=self.kwargs['pk'])
+        payment = self.get_object()
         return payment.user.id == self.request.user.id or self.request.user.is_superuser
 
 

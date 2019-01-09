@@ -109,7 +109,7 @@ class LeaveUpdateView(PermissionRequiredMixin, UpdateView):
             user.save()
             leave.status = 'RE'
         leave.save()
-        return HttpResponseRedirect("/leave_records/")
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class LeaveDetailView(UserPassesTestMixin, UpdateView):
@@ -119,10 +119,10 @@ class LeaveDetailView(UserPassesTestMixin, UpdateView):
 
     # Prevent any update
     def form_valid(self, form):
-        return HttpResponseRedirect("/leave_records/")
+        return HttpResponseRedirect(self.get_success_url())
 
     def test_func(self):
-        leave = Leave.objects.get(id=self.kwargs['pk'])
+        leave = self.get_object()
         return leave.user.id == self.request.user.id or self.request.user.is_superuser
 
 
