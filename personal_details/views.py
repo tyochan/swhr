@@ -36,12 +36,11 @@ class IndexView(LoginRequiredMixin, ListView):
             # Filtering
             staff_id = self.request.GET.get('staff_id', '')
             name = self.request.GET.get('name', '')
-            # date_joined = self.request.GET.get('date_joined', '')
             is_active = bool(self.request.GET.get('is_active', 'True'))
 
-            if bool(staff_id + name):  # + date_joined
-                print('Staff Filtering: %s %s %s %s' %
-                      (staff_id, name, date_joined, is_active))
+            if bool(staff_id + name):
+                print('Staff Filtering: %s %s %s' %
+                      (staff_id, name, is_active))
 
                 return User.objects.order_by(order_by).filter(Q(staff_id__contains=staff_id),
                                                               Q(last_name__contains=name) |
@@ -60,14 +59,13 @@ class IndexView(LoginRequiredMixin, ListView):
         # Filtering
         context['staff_id'] = self.request.GET.get('staff_id', '')
         context['name'] = self.request.GET.get('name', '')
-        # context['date_joined'] = self.request.GET.get('date_joined', '')
         context['is_active'] = self.request.GET.get('is_active', 'True')
 
         context['is_active_options'] = dict(
             {'True': 'Active', '': 'Inactive'})
 
-        context['filter'] = 'staff_id=%s&name=%s' % (  # &date_joined=%s
-            context['staff_id'], context['name'], )  # context['date_joined']
+        context['filter'] = 'staff_id=%s&name=%s' % (
+            context['staff_id'], context['name'], )
 
         return context
 
