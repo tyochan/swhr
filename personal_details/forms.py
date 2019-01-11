@@ -28,7 +28,7 @@ class UserForm(ModelForm):
         widgets = {
             'date_joined': DateInput(),
             'annual_leave': NumberInput(attrs={'class': 'one-decimal'}),
-            'salary': NumberInput(attrs={'class': 'two-decimal'}),
+            # 'salary': NumberInput(attrs={'class': 'two-decimal'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -81,8 +81,8 @@ class UserForm(ModelForm):
                 css_class='form-row'
             ),
             Row(
-                Column(PrependedText('salary', '$'),
-                       css_class='form-group col-md-2'),
+                # Column(PrependedText('salary', '$'),
+                #        css_class='form-group col-md-2'),
                 Column(AppendedText('annual_leave', 'Days'),
                        css_class='form-group col-md-2'),
                 Column('date_joined', css_class='form-group col-md-2'),
@@ -137,7 +137,7 @@ class UserUpdateForm(UserForm):
 
             self.fields['last_name'].disabled = True
             self.fields['first_name'].disabled = True
-            self.fields['salary'].disabled = True
+            # self.fields['salary'].disabled = True
             self.fields['annual_leave'].disabled = True
             self.fields['last_date'].disabled = True
             self.fields['is_active'].disabled = True

@@ -1,3 +1,7 @@
+IDENTITY_TYPE = (
+    ('ID', 'ID Card'),
+    ('PP', 'Passport')
+)
 BANK_LIST = (
     ('003', '003 Standard Chartered Bank (Hong Kong) Limited'),
     ('004', '004 The Hongkong and Shanghai Banking Corporation Limited'),

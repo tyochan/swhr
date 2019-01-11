@@ -267,6 +267,7 @@ def payment_calculation(request):
     if request.GET['is_last'] == 'True':
         future_leave_days = utils.annual_leave_to_year_end(period_end.date())
         unused_leave_days = user.annual_leave - future_leave_days
+        unused_leave_pay = unused_leave_days / 365 * salary * 12
 
     # Total Payment = Basic Salary + Allowance + Others
     total_payments = user.salary + \
