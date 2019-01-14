@@ -27,6 +27,16 @@ $().ready(function() {
     enable($("#id_last_date"))
   }
 
+  if ($("#id_marital_status").val() == 'SI') {
+    disable($("#id_spouse_name"))
+    disable($("#id_spouse_identity_type"))
+    disable($("#id_spouse_identity_no"))
+  } else {
+    enable($("#id_spouse_name"))
+    enable($("#id_spouse_identity_type"))
+    enable($("#id_spouse_identity_no"))
+  }
+
   $("#id_date_joined").datepicker().trigger("changeDate")
 });
 
@@ -44,5 +54,18 @@ $("#id_is_active").on('click', function() {
 $("#id_date_joined").datepicker().on("changeDate", function(e) {
   if (name_in_path("create")) {
     annual_leave_calculation()
+  }
+})
+
+$("#id_marital_status").on('change', function() {
+  log($("#id_marital_status").val() == 'SI')
+  if ($("#id_marital_status").val() == 'SI') {
+    disable($("#id_spouse_name"))
+    disable($("#id_spouse_identity_type"))
+    disable($("#id_spouse_identity_no"))
+  } else {
+    enable($("#id_spouse_name"))
+    enable($("#id_spouse_identity_type"))
+    enable($("#id_spouse_identity_no"))
   }
 })

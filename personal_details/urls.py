@@ -11,6 +11,9 @@ urlpatterns = [
     path('create', views.UserCreateView.as_view(), name='create_user'),
     path('update/<slug>', views.UserUpdateView.as_view(),
          name='update_user'),
+    # path('change_salary', views.ChangeSalaryView.as_view(), name='change_salary'),
+    # path('change_title', views.ChangeTitleView.as_view(), name='change_title'),
+    # path('change_academic_record', views.ChangeAcademicRecordView.as_view(), name='change_academic_record'),
 
     path('ajax/annual_leave_calculation', views.annual_leave_calculation)
 ]

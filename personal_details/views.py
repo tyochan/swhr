@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.auth import views as auth_views
 
 # Models
-from .models import User
+from .models import User, SalaryRecord
 from django.db.models import Q
 
 # Form classes
@@ -43,8 +43,8 @@ class IndexView(LoginRequiredMixin, ListView):
                       (staff_id, name, is_active))
 
                 return User.objects.order_by(order_by).filter(Q(staff_id__contains=staff_id),
-                                                              Q(last_name__contains=name) |
-                                                              Q(first_name__contains=name),
+                                                              Q(last_name__contains=name)
+                                                              | Q(first_name__contains=name),
                                                               Q(is_active=is_active),
                                                               Q(is_staff=False),)
             else:
@@ -76,6 +76,12 @@ class UserCreateView(PermissionRequiredMixin, CreateView):
     template_name = 'form_employee.html'
     permission_required = 'personal_details.create_user'
 
+    def get_context_data(self, **kwargs):
+        context = super(UserCreateView, self).get_context_data(**kwargs)
+        context['salary_formset'] = forms.SalaryInlineFormSet()
+        context['salary_formset_helper'] = forms.SalaryFormSetHelper()
+        return context
+
 
 class UserUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.UserUpdateForm
@@ -91,6 +97,12 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+
+class ChangeSalaryView(PermissionRequiredMixin, CreateView):
+    template_name = 'formset.html'
+    model = SalaryRecord
+    form_class = forms.SalaryForm
 
 
 @ajax

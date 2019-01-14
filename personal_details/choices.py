@@ -1,6 +1,13 @@
 IDENTITY_TYPE = (
     ('ID', 'ID Card'),
-    ('PP', 'Passport')
+    ('PP', 'Passport'),
+)
+MARITAL_STATUS = (
+    ('SI', 'Single'),
+    ('MA', 'Married'),
+    ('WI', 'Widowed'),
+    ('DI', 'Divorced'),
+    ('SE', 'Separated'),
 )
 BANK_LIST = (
     ('003', '003 Standard Chartered Bank (Hong Kong) Limited'),
