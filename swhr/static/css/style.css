@@ -27,14 +27,14 @@
 }
 
 body {
-  overflow-y:hidden;
+  /* overflow-y:hidden; */
 }
 
 .card-body {
   padding: 0.5em;
 }
 
-.card {
+.card-filter {
   background-color: #eff0f1;
 }
 

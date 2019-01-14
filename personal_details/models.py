@@ -20,7 +20,9 @@ def generate_random_id():
 
 class User(AbstractUser):
     slug = models.SlugField(blank=True)  # Hidden Info
+    # id
     # Basic Info
+    # username password first_name last_name
     nick_name = models.CharField(
         blank=True, max_length=30, verbose_name='Nick Name')
     staff_id = models.CharField(max_length=10,
@@ -29,22 +31,25 @@ class User(AbstractUser):
                                 verbose_name='Employee ID')
 
     # Identity
-    birth_date = models.DateField(verbose_name='Date of Birth')
+    birth_date = models.DateField(null=True, verbose_name='Date of Birth')
     identity_type = models.CharField(
         max_length=10, choices=choices.IDENTITY_TYPE, default='ID', verbose_name='Identity Type')
-    identity_no = models.CharField(max_length=30, verbose_name='Identity No.')
+    identity_no = models.CharField(
+        default='1234567', max_length=30, verbose_name='Identity No.')
 
-    # Advance Info
+    # Contact Info
+    # email
     mobile = models.CharField(max_length=20,
                               default='+852-29009999', blank=True)
     address = models.CharField(max_length=150,
                                default='Unit 801-802, 8/F C-Bons International Centre, 108 Wai Yip Street, Kwun Tong, Kowloon, Hong Kong', blank=True)
     department = models.CharField(max_length=100,
                                   default='-', blank=True)
-    title = models.CharField(max_length=10, default='-', blank=True)
-
-    last_date = models.DateField(
-        null=True, blank=True, verbose_name='Last Date')
+    title = models.CharField(max_length=10, default='-')
+    title_grade = models.CharField(
+        max_length=20, null=True, verbose_name='Title Grade')
+    marital_status = models.CharField(max_length=10, default='SI',
+                                      choices=choices.MARITAL_STATUS, verbose_name='Marital Status')
 
     # Pay Info
     annual_leave = models.FloatField(default=0, verbose_name='Annual Leave')
@@ -53,14 +58,21 @@ class User(AbstractUser):
     bank_acc = models.CharField(max_length=100,
                                 default='123-456-778', blank=True, verbose_name='Bank Account')
     salary = models.FloatField(default=0)
+    salary_grade = models.CharField(
+        max_length=20, null=True, verbose_name='Salary Grade')
 
     # Emergency Contact
     emergency_contact_name = models.CharField(
         blank=True, null=True, max_length=30, verbose_name='Name')
     emergency_contact_number = models.CharField(blank=True, null=True, max_length=20,
-                                                default='+852-29009999', blank=True)
+                                                default='+852-29009999', verbose_name='Number')
     emergency_contact_relationship = models.CharField(
-        blank=True, null=True, max_length=30)
+        blank=True, null=True, max_length=30, verbose_name='Relationship')
+
+    # Admin Info
+    # last_login is_superuser is_staff is_active date_joined groups user_permissions
+    last_date = models.DateField(
+        null=True, blank=True, verbose_name='Last Date')
 
     class Meta:
         ordering = ['last_name']
@@ -82,6 +94,7 @@ class User(AbstractUser):
 class SalaryRecord(models.Model):
     date_changed = models.DateField(verbose_name='Date')
     amount = models.FloatField()
+    grade = models.CharField(max_length=10, verbose_name='Salary Grade')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -92,7 +105,7 @@ class TitleRecord(models.Model):
     date_changed = models.DateField(verbose_name='Date')
     #department = models.CharField(verbose_name='Department')
     name = models.CharField(max_length=30, verbose_name='Title')
-    grade = models.CharField(max_length=20, verbose_name='Grade')
+    grade = models.CharField(max_length=20, verbose_name='Title Grade')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -103,6 +116,7 @@ class AcademicRecord(models.Model):
     date_start = models.DateField(verbose_name='From Date')
     date_end = models.DateField(verbose_name='End Date')
     name = models.CharField(max_length=50)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s %s %s' % (date_start, date_end, name)

@@ -3,7 +3,7 @@
 
 {% block content %}
 {% if request.user.is_superuser %}
-<div class="card text-white mt-2">
+<div class="card-filter text-white mt-2">
   <form class="form-row card-body" method="get" action=".">
     <div class="col-xs-1">
       <input class="form-control" id="id_staff_id" name="staff_id" type="number" placeholder="Employee ID" value="{{staff_id}}">

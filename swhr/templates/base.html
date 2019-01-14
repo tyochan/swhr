@@ -24,7 +24,7 @@
 <body {% if not request.user.is_authenticated %} style="background-color:#ebebeb" {% endif %}>
   {% if request.user.is_authenticated %}
   {% block navbar %}
-  <nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top">
+  <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
     <a class="navbar-brand" href="{% url 'personal_details:index' %}"><img src="{% static 'img/logo_g.png' %}" alt="SkyWiseHR" id="logo"></a>
     <ul class="navbar-nav nav">
       <li class="nav-item {% if request.resolver_match.app_name == 'personal_details' %}active{% endif %}">

@@ -22,7 +22,7 @@ if __name__ == '__main__':
         'log.screen': True,
         'log.error_file': 'log/errors.log',
         'log.access_file': 'log/access.log',
-        'engine.autoreload.on': False
+        'engine.autoreload.on': True
     })
 
     # Instantiate a new server object
