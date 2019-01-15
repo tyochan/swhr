@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container col-sm-11 border">
+  <form method="post">
+    {% crispy form form.helper %}
+    <div class="container col-sm-12 border">
+      <label class="col-form-label font-weight-bold text-primary">Academic Record</label>
+      {% crispy ARFormset ARFormset.form.helper %}
+      <a id="id_add_ar" role="button" name="minus-btn" class="fas fa-plus-circle text-success float-right" style="font-size:1.5rem; margin-right:39px;"></a>
+    </div>
+    <br>
+    <input type="submit" name="submit" value="Save" class="btn btn-primary btn-outline-primary" id="submit-id-submit" autocomplete="off">
+  </form>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/ajax_employee.js' %}"></script>
+<script src="{% static 'js/form_employee.js' %}"></script>
+{% endblock %}

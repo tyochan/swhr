@@ -5,7 +5,5 @@
 {% block content %}
 <form method="post" {% block form_atr %}{% endblock %}>
   {% crispy form form.helper %}
-  {% block formset %}
-  {% endblock %}
 </form>
 {% endblock %}

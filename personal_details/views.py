@@ -1,10 +1,10 @@
 # Views
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import views as auth_views
 
 # Models
-from .models import User, SalaryRecord
+from .models import User, SalaryTitleRecord, AcademicRecord
 from django.db.models import Q
 
 # Form classes
@@ -73,14 +73,28 @@ class IndexView(LoginRequiredMixin, ListView):
 class UserCreateView(PermissionRequiredMixin, CreateView):
     form_class = forms.UserCreateForm
     model = User
-    template_name = 'form_employee.html'
+    template_name = 'form_create_employee.html'
     permission_required = 'personal_details.create_user'
 
     def get_context_data(self, **kwargs):
         context = super(UserCreateView, self).get_context_data(**kwargs)
-        context['salary_formset'] = forms.SalaryInlineFormSet()
-        context['salary_formset_helper'] = forms.SalaryFormSetHelper()
+        context['ARFormset'] = forms.AcademicRecordInlineFormset(
+            queryset=AcademicRecord.objects.none())
         return context
+
+    def form_valid(self, form):
+        super().form_valid(form)
+        user = User.objects.get(
+            staff_id=form.cleaned_data['staff_id'])
+        data = form.cleaned_data
+        salary_record = SalaryRecord(
+            date_changed=data['date_joined'], amount=data['salary'], grade=data['salary_grade'], user=user)
+        salary_record.save()
+
+        title_record = TitleRecord(
+            date_changed=data['date_joined'], name=data['title'], grade=data['title_grade'], user=user)
+        title_record.save()
+        return HttpResponseRedirect(reverse_lazy('personal_details:index'))
 
 
 class UserUpdateView(UserPassesTestMixin, UpdateView):
@@ -99,10 +113,21 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
         return kwargs
 
 
-class ChangeSalaryView(PermissionRequiredMixin, CreateView):
-    template_name = 'formset.html'
-    model = SalaryRecord
-    form_class = forms.SalaryForm
+class AcademicRecordChangeView(PermissionRequiredMixin, FormView):
+    form_class = forms.AcademicRecordForm
+    model = AcademicRecord
+    template_name = 'formset_academic_record.html'
+    permission_required = 'personal_details.create_user'
+
+    def get_context_data(self, **kwargs):
+        context = super(AcademicRecordChangeView,
+                        self).get_context_data(**kwargs)
+        if self.request.POST:
+            context['formset'] = forms.AcademicRecordFormSet(self.request.POST)
+        else:
+            context['formset'] = forms.AcademicRecordFormSet()
+            context['formset_helper'] = forms.AcademicRecordFormsetHelper()
+        return context
 
 
 @ajax
