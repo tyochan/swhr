@@ -38,6 +38,8 @@ $().ready(function() {
   }
 
   $("#id_date_joined").datepicker().trigger("changeDate")
+
+  $(".dateinput").datepicker("setEndDate", new Date())
 });
 
 // Toggle last_date

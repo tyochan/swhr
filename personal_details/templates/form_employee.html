@@ -5,4 +5,21 @@
 {% block javascript %}
 <script src="{% static 'js/ajax_employee.js' %}"></script>
 <script src="{% static 'js/form_employee.js' %}"></script>
+<script src="{% static 'vendor/django-dynamic-formset/src/jquery.formset.js' %}"></script>
+<script type="text/javascript">
+  $('.academic-record-formset').formset({
+    addText: 'Add New Record',
+    addCssClass: 'fas fa-plus-circle text-success add-er-btn',
+    deleteText: '',
+    deleteCssClass: 'minus-ar-btn',
+    prefix: '{{ ARFormset.prefix }}',
+  })
+  $('.employment-history-formset').formset({
+    addText: 'Add New Record',
+    addCssClass: 'fas fa-plus-circle text-success add-er-btn',
+    deleteText: '',
+    deleteCssClass: 'minus-eh-btn',
+    prefix: '{{ EHFormset.prefix }}',
+  })
+</script>
 {% endblock %}

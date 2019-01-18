@@ -18,10 +18,14 @@ TITLE_GRADE = (
     ('U6', 'U6'),
 )
 DEPARTMENT_LIST = (
-    ('AD', 'Admin'),
-    ('FI', 'Finance'),
-    ('HR', 'Human Resources'),
-    ('IT', 'Information Technology'),
+    ('01A', '01A Project Investment'),
+    ('01B', '01B Project Retail'),
+    ('20', '20 CEO Office'),
+    ('37', '37 Legal'),
+    ('38', '38 Information Technology'),
+    ('62', '62 Finance'),
+    ('63A', '63A Administration'),
+    ('63', '63 Human Resources'),
 )
 BANK_LIST = (
     ('003', '003 Standard Chartered Bank (Hong Kong) Limited'),

@@ -111,3 +111,6 @@ tcl
 
 # collectstatic
 all_static
+
+# vendor
+vendor

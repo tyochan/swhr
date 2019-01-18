@@ -56,7 +56,9 @@ function add_all(objects) {
 $('input').on('keydown', function(event) {
   var x = event.which;
   if (x === 13) {
-    this.blur();
+    if (!name_in_path('login')) {
+      this.blur();
+    }
   }
 });
 

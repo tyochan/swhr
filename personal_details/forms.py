@@ -1,16 +1,17 @@
-from django.forms import ModelForm, ValidationError, DateInput, TextInput, PasswordInput, NumberInput, HiddenInput, CharField, ChoiceField
+from django.forms import ModelForm, ValidationError, DateInput, TextInput, PasswordInput, NumberInput, HiddenInput, CharField, ChoiceField, Select
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import hashers
 from . import choices
-from django.forms.models import inlineformset_factory, modelformset_factory
+from django.forms.models import inlineformset_factory
 
 # Models
-from .models import User, SalaryTitleRecord, AcademicRecord
+from .models import User, EmploymentHistory, Spouse, AcademicRecord
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, HTML, Row, Field, Column
 from crispy_forms.bootstrap import AppendedText, PrependedText
+from swhr.utils import Formset
 
 import datetime
 
@@ -55,80 +56,92 @@ class UserForm(ModelForm):
             Field('password', readonly=True),
             Row(
                 Column(Field('staff_id', readonly=True),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-3'),
                 Column(Field('last_name'),
-                       css_class='form-group col-md-3'),
+                       css_class='col-md-3'),
                 Column(Field('first_name'),
-                       css_class='form-group col-md-3'),
-                Column('nick_name', css_class='form-group col-md-3'),
+                       css_class='col-md-3'),
+                Column('nick_name', css_class='col-md-3'),
 
                 css_class='form-row'
             ),
             Row(
                 Column(Field('mobile'),
-                       css_class='form-group col-sm-2'),
+                       css_class='col-sm-2'),
                 Column(Field('email'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-3'),
                 Column(Field('birth_date'),
-                       css_class='form-group col-md-2'),
+                       css_class='col-md-2'),
                 Column(Field('identity_type'),
-                       css_class='form-group col-md-2'),
+                       css_class='col-md-2'),
                 Column(Field('identity_no'),
-                       css_class='form-group col-md-3'),
+                       css_class='col-md-3'),
                 css_class='form-row'
             ),
             Row(
                 Column(Field('department'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-3'),
                 Column(Field('title'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-3'),
                 Column(PrependedText('salary', '$'),
-                       css_class='form-group col-md-2'),
+                       css_class='col-md-2'),
                 Column(Field('grade'),
-                       css_class='form-group col-sm-2'),
+                       css_class='col-sm-2'),
                 Column(AppendedText('annual_leave', 'Days'),
-                       css_class='form-group col-md-2'),
+                       css_class='col-md-2'),
                 css_class='form-row'
             ),
             Row(
-                Column('bank', css_class='form-group col-md-5'),
-                Column('bank_acc', css_class='form-group col-md-2'),
-                Column('date_joined', css_class='form-group col-md-2'),
-                Column('last_date', css_class='form-group col-md-2'),
+                Column('bank', css_class='col-md-5'),
+                Column('bank_acc', css_class='col-md-2'),
+                Column('date_joined', css_class='col-md-2'),
+                Column('last_date', css_class='col-md-2'),
                 Column(PrependedText('is_active', ''),
-                       css_class='form-group col-md-1'),
+                       css_class='col-md-1'),
                 css_class='form-row'
             ),
             Row(
                 Column(Field('address'),
-                       css_class='form-group col-sm-12'),
+                       css_class='col-sm-12'),
+                css_class='form-row'
             ),
             Row(
                 Column(Field('marital_status'),
-                       css_class='form-group col-sm-2'),
+                       css_class='col-sm-2'),
                 Column(Field('spouse_name'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-3'),
                 Column(Field('spouse_identity_type'),
-                       css_class='form-group col-sm-2'),
+                       css_class='col-sm-2'),
                 Column(Field('spouse_identity_no'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-3'),
                 css_class='form-row'
             ),
             Row(
                 Column(Field('emergency_contact_name'),
-                       css_class='form-group col-md-3'),
+                       css_class='col-md-3'),
                 Column(Field('emergency_contact_number'),
-                       css_class='form-group col-md-3'),
+                       css_class='col-md-3'),
                 Column(Field('emergency_contact_relationship'),
-                       css_class='form-group col-md-3'),
+                       css_class='col-md-3'),
                 css_class='form-row'
             ),
             HTML('''
                 </div>
+                <div class="container col-sm-12 border">
+                    <label class="col-form-label font-weight-bold text-primary">Academic Record</label>
             '''),
-            # Submit('submit', 'Save', css_class="btn-outline-primary"),
-            # HTML(
-            #     '<a href="{% url \'personal_details:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>')
+            Formset('ARFormset', 'ARFormsetHelper'),
+            HTML('''
+                </div>
+                <div class="container col-sm-12 border">
+                    <label class="col-form-label font-weight-bold text-secondary">Employment History</label>'''),
+            Formset('EHFormset', 'EHFormsetHelper'),
+            HTML('''
+                </div>
+            '''),
+            Submit('submit', 'Save', css_class="btn-outline-primary"),
+            HTML(
+                '<a href="{% url \'personal_details:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>')
         )
 
         # Required fields
@@ -142,7 +155,6 @@ class UserForm(ModelForm):
 
     def clean(self):
         data = super().clean()
-        print(data)
         if data['marital_status'] != 'SI' and not (data['spouse_name'] or data['spouse_identity_no']):
             raise ValidationError(
                 'Spouse information is needed if user is not single.')
@@ -200,34 +212,71 @@ class AcademicRecordForm(ModelForm):
         widgets = {
             'date_start': DateInput(),
             'date_end': DateInput(),
-            'user': HiddenInput(),
         }
 
+    def clean_year_completed(self):
+        year_completed = self.cleaned_data['year_completed']
+        max_year = datetime.date.today().year
+        if int(year_completed) > max_year:
+            raise ValidationError(
+                'Completed year is larger than current year.')
+        return year_completed
+
+
+class AcademicRecordFormsetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
-        super(AcademicRecordForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        self.helper.layout = Layout(
+        super(AcademicRecordFormsetHelper, self).__init__(*args, **kwargs)
+        self.layout = Layout(
             Row(
                 Column(Field('date_start'),
-                       css_class='form-group col-sm-2'),
+                       css_class='col-sm-1'),
                 Column(Field('date_end'),
-                       css_class='form-group col-sm-2'),
+                       css_class='col-sm-1'),
                 Column(Field('institution_name'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-4'),
                 Column(Field('qualification'),
-                       css_class='form-group col-sm-3'),
+                       css_class='col-sm-4'),
                 Column(Field('year_completed'),
-                       css_class='form-group col-md-1'),
-                Column(HTML('''<a role="button" name="minus-btn" class="fas fa-minus-circle text-danger" style="font-size:1.5rem; padding-top:45px;"></a>'''),
-                       css_class='form-group col-md-1 text-center'),
-                Column('user', css_class='form-group col-md-1'),
-                css_class='form-row'
+                       css_class='col-md-1'),
+                Column(HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-ar-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
+                       css_class='col-md-1 text-center'),
+                'user',
+                'id',
+                'DELETE',
+                css_class='form-row academic-record-formset'
             ),
         )
 
 
-AcademicRecordFormSet = modelformset_factory(
-    AcademicRecord, form=AcademicRecordForm)
+class EmploymentHistoryForm(ModelForm):
+    class Meta:
+        model = EmploymentHistory
+        fields = '__all__'
+        widgets = {
+            'date_start': DateInput(),
+            'date_end': DateInput(),
+        }
 
-AcademicRecordInlineFormset = inlineformset_factory(
-    User, AcademicRecord, fields='__all__', form=AcademicRecordForm, formset=AcademicRecordFormSet, extra=3)
+
+class EmploymentHistoryFormsetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super(EmploymentHistoryFormsetHelper, self).__init__(*args, **kwargs)
+        self.layout = Layout(
+            Row(
+                Column(Field('date_start'),
+                       css_class='col-sm-1'),
+                Column(Field('date_end'),
+                       css_class='col-sm-1'),
+                Column(Field('employer_name'),
+                       css_class='col-sm-3'),
+                Column(Field('position'),
+                       css_class='col-sm-2'),
+                Column(Field('reason'),
+                       css_class='col-md-4'),
+                Column(HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-eh-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
+                       css_class='col-md-1 text-center'),
+                'user',
+                'id',
+                css_class='form-row employment-history-formset'
+            ),
+        )

@@ -7,6 +7,7 @@ from django.template.defaultfilters import slugify
 import uuid
 from . import choices
 from django.urls import reverse
+import datetime
 
 
 def generate_random_id():
@@ -44,7 +45,7 @@ class User(AbstractUser):
     address = models.CharField(max_length=150,
                                default='Unit 801-802, 8/F C-Bons International Centre, 108 Wai Yip Street, Kwun Tong, Kowloon, Hong Kong', blank=True)
     department = models.CharField(choices=choices.DEPARTMENT_LIST, max_length=100,
-                                  default='AD')
+                                  default='63A')
     title = models.CharField(max_length=10, default='-')
     grade = models.CharField(choices=choices.TITLE_GRADE, default='U1',
                              max_length=20, null=True, verbose_name='Grade')
@@ -104,21 +105,37 @@ class SalaryTitleRecord(models.Model):
 
 
 class AcademicRecord(models.Model):
-    date_start = models.DateField(verbose_name='From Date')
-    date_end = models.DateField(verbose_name='End Date')
-    year_completed = models.CharField(default='2019', choices=choices.YEAR_LIST,
-                                      max_length=4, verbose_name='Year')
-    institution_name = models.CharField(max_length=50)
-    qualification = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date_start = models.DateField(verbose_name='Start Date')
+    date_end = models.DateField(verbose_name='End Date')
+    institution_name = models.CharField(
+        default='Institution Name', max_length=50, verbose_name='Institution Name')
+    qualification = models.CharField(default='Qualifictation', max_length=100)
+    year_completed = models.CharField(default=datetime.date.today().year, choices=choices.YEAR_LIST,
+                                      max_length=4, verbose_name='Year')
 
     def __str__(self):
-        return '%s %s %s' % (date_start, date_end, name)
+        return '%s %s %s %s %s' % (self.date_start, self.date_end, self.institution_name, self.qualification, self.year_completed)
 
 
 class Spouse(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True)
+    name = models.CharField(default='Spouse Name',
+                            max_length=40, verbose_name='Spouse Name')
     identity_type = models.CharField(
-        max_length=10, choices=choices.IDENTITY_TYPE, default='ID', verbose_name='Identity Type')
-    identity_no = models.CharField(max_length=30, verbose_name='Identity No.')
+        default='ID', max_length=10, choices=choices.IDENTITY_TYPE, verbose_name='Identity Type')
+    identity_no = models.CharField(
+        default='identity no', max_length=30, verbose_name='Identity No.')
+
+
+class EmploymentHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    employer_name = models.CharField(
+        default='Employer Name', max_length=50,  verbose_name='Employer Name')
+    date_start = models.DateField(verbose_name='Start Date')
+    date_end = models.DateField(verbose_name='End Date')
+    position = models.CharField(
+        default='Last Position', max_length=50, verbose_name='Last Position')
+    reason = models.CharField(
+        default='Reasons for Leaving', max_length=50, verbose_name='Reasons for Leaving')

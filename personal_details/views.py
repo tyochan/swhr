@@ -4,11 +4,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.auth import views as auth_views
 
 # Models
-from .models import User, SalaryTitleRecord, AcademicRecord
+from .models import User, SalaryTitleRecord, AcademicRecord, Spouse, EmploymentHistory
 from django.db.models import Q
+from django.forms.models import inlineformset_factory
 
 # Form classes
 from . import forms
+from django.forms import HiddenInput
 
 # Response
 from django.http import HttpResponseRedirect
@@ -73,28 +75,79 @@ class IndexView(LoginRequiredMixin, ListView):
 class UserCreateView(PermissionRequiredMixin, CreateView):
     form_class = forms.UserCreateForm
     model = User
-    template_name = 'form_create_employee.html'
+    template_name = 'form_employee.html'
     permission_required = 'personal_details.create_user'
+    AcademicRecordInlineFormset = inlineformset_factory(
+        User, AcademicRecord,
+        form=forms.AcademicRecordForm,
+        can_delete=False,
+        extra=1
+    )
+    EmploymentHistoryInlineFormset = inlineformset_factory(
+        User, EmploymentHistory,
+        form=forms.EmploymentHistoryForm,
+        can_delete=False,
+        extra=1
+    )
 
     def get_context_data(self, **kwargs):
         context = super(UserCreateView, self).get_context_data(**kwargs)
-        context['ARFormset'] = forms.AcademicRecordInlineFormset(
-            queryset=AcademicRecord.objects.none())
+        if self.request.POST:
+            context['ARFormset'] = self.AcademicRecordInlineFormset(
+                self.request.POST, prefix='academicRecord')
+            context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
+
+            context['EHFormset'] = self.EmploymentHistoryInlineFormset(
+                self.request.POST, prefix='employmentHistory')
+            context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
+        else:
+            context['ARFormset'] = self.AcademicRecordInlineFormset(
+                prefix='academicRecord')
+            context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
+
+            context['EHFormset'] = self.EmploymentHistoryInlineFormset(
+                prefix='employmentHistory')
+            context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
         return context
 
     def form_valid(self, form):
-        super().form_valid(form)
-        user = User.objects.get(
-            staff_id=form.cleaned_data['staff_id'])
-        data = form.cleaned_data
-        salary_record = SalaryRecord(
-            date_changed=data['date_joined'], amount=data['salary'], grade=data['salary_grade'], user=user)
-        salary_record.save()
+        context = self.get_context_data()
+        ARFormset = context['ARFormset']
+        EHFormset = context['EHFormset']
+        # print(EHFormset.cleaned_data)
+        if ARFormset.is_valid() and form.is_valid() and EHFormset.is_valid():
+            super().form_valid(form)  # Save User object
+            data = form.cleaned_data
+            user = User.objects.get(
+                staff_id=data['staff_id'])
 
-        title_record = TitleRecord(
-            date_changed=data['date_joined'], name=data['title'], grade=data['title_grade'], user=user)
-        title_record.save()
-        return HttpResponseRedirect(reverse_lazy('personal_details:index'))
+            # Spouse
+            if data['marital_status'] != 'SI':
+                spouse = Spouse(
+                    user=user, name=data['spouse_name'], identity_type=data['spouse_identity_type'], identity_no=data['spouse_identity_no'])
+                spouse.save()
+
+            # SalaryTitleRecord
+            salary_title_record = SalaryTitleRecord(
+                date_changed=data['date_joined'], department=data['department'], salary=data['salary'], title=data['title'], grade=data['grade'], user=user)
+            salary_title_record.save()
+
+            # AcademicRecord
+            for f in ARFormset:
+                form_data = f.cleaned_data
+                if form_data:
+                    academicRecord = AcademicRecord(date_start=form_data['date_start'], date_end=form_data['date_end'], institution_name=form_data[
+                                                    'institution_name'], qualification=form_data['qualification'], year_completed=form_data['year_completed'], user=user)
+                    academicRecord.save()
+
+            for f in EHFormset:
+                form_data = f.cleaned_data
+                if form_data:
+                    employmentHistory = EmploymentHistory(date_start=form_data['date_start'], date_end=form_data['date_end'], employer_name=form_data[
+                        'employer_name'], position=form_data['position'], reason=form_data['reason'], user=user)
+                    employmentHistory.save()
+            return HttpResponseRedirect(reverse_lazy('personal_details:index'))
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class UserUpdateView(UserPassesTestMixin, UpdateView):
@@ -102,6 +155,20 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
     model = User
     slug = 'staff_id'
     template_name = 'form_employee.html'
+    AcademicRecordInlineFormset = inlineformset_factory(
+        User, AcademicRecord,
+        form=forms.AcademicRecordForm,
+        can_delete=True,
+        widgets={'DELETE': HiddenInput()},
+        extra=0
+    )
+    EmploymentHistoryInlineFormset = inlineformset_factory(
+        User, EmploymentHistory,
+        form=forms.EmploymentHistoryForm,
+        can_delete=True,
+        widgets={'DELETE': HiddenInput()},
+        extra=0
+    )
 
     def test_func(self):
         user = self.get_object()
@@ -112,22 +179,42 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
         kwargs['user'] = self.request.user
         return kwargs
 
-
-class AcademicRecordChangeView(PermissionRequiredMixin, FormView):
-    form_class = forms.AcademicRecordForm
-    model = AcademicRecord
-    template_name = 'formset_academic_record.html'
-    permission_required = 'personal_details.create_user'
-
     def get_context_data(self, **kwargs):
-        context = super(AcademicRecordChangeView,
-                        self).get_context_data(**kwargs)
+        context = super(UserUpdateView, self).get_context_data(**kwargs)
         if self.request.POST:
-            context['formset'] = forms.AcademicRecordFormSet(self.request.POST)
+            context['ARFormset'] = self.AcademicRecordInlineFormset(
+                self.request.POST, prefix='academicRecord')
+            context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
+
+            context['EHFormset'] = self.EmploymentHistoryInlineFormset(
+                self.request.POST, prefix='employmentHistory')
+            context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
         else:
-            context['formset'] = forms.AcademicRecordFormSet()
-            context['formset_helper'] = forms.AcademicRecordFormsetHelper()
+            user = self.get_object()
+            context['ARFormset'] = self.AcademicRecordInlineFormset(
+                instance=user,
+                prefix='academicRecord'
+            )
+            context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
+
+            context['EHFormset'] = self.EmploymentHistoryInlineFormset(
+                instance=user,
+                prefix='employmentHistory'
+            )
+            context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
         return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        ARFormset = context['ARFormset']
+        EHFormset = context['EHFormset']
+        # print(EHFormset.cleaned_data)
+        if ARFormset.is_valid() and form.is_valid() and EHFormset.is_valid():
+            super().form_valid(form)  # Save User object
+            ARFormset.save()
+            EHFormset.save()
+            return HttpResponseRedirect(reverse_lazy('personal_details:index'))
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 @ajax
