@@ -17,7 +17,7 @@ function getEndDate() {
 $().ready(function() {
   staff_id = $("#id_staff_id").val()
   $('#id_username').val(staff_id)
-  $('#id_password').val(staff_id)
+  $('#id_password').val('abcd1234')
 
   $('#id_last_date').datepicker("setStartDate", getStartDate())
 

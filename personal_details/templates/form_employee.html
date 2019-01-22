@@ -5,7 +5,7 @@
 {% block javascript %}
 <script src="{% static 'js/ajax_employee.js' %}"></script>
 <script src="{% static 'js/form_employee.js' %}"></script>
-<script src="{% static 'vendor/django-dynamic-formset/src/jquery.formset.js' %}"></script>
+<script src="{% static 'js/formset.js' %}"></script>
 <script type="text/javascript">
   $('.academic-record-formset').formset({
     addText: 'Add New Record',
@@ -13,6 +13,7 @@
     deleteText: '',
     deleteCssClass: 'minus-ar-btn',
     prefix: '{{ ARFormset.prefix }}',
+    formCssClass: 'academic-record-formset',
   })
   $('.employment-history-formset').formset({
     addText: 'Add New Record',
@@ -20,6 +21,7 @@
     deleteText: '',
     deleteCssClass: 'minus-eh-btn',
     prefix: '{{ EHFormset.prefix }}',
+    formCssClass: 'employment-history-formset',
   })
 </script>
 {% endblock %}

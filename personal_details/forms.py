@@ -5,7 +5,7 @@ from . import choices
 from django.forms.models import inlineformset_factory
 
 # Models
-from .models import User, EmploymentHistory, Spouse, AcademicRecord
+from .models import User, EmploymentHistory, Spouse, AcademicRecord, SalaryTitleRecord
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
@@ -168,10 +168,10 @@ class UserCreateForm(UserForm):
         self.fields['last_date'].disabled = True
         self.fields['is_active'].disabled = True
 
-    def clean_password(self):
-        password = self.cleaned_data['password'].strip()
-        password = hashers.make_password(password)
-        return password
+    def clean(self):
+        data = super().clean()
+        data['password'] = hashers.make_password(data['staff_id'].strip())
+        return data
 
 
 class UserUpdateForm(UserForm):
@@ -180,6 +180,11 @@ class UserUpdateForm(UserForm):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         self.helper.filter(Submit).wrap(
             Submit, 'Update', css_class="btn-outline-primary")
+        self.helper.layout.insert(-2,
+                                  HTML('''<div class="container col-sm-12 border">
+                                  <label class="col-form-label font-weight-bold text-warning">Salary & Title</label>'''))
+        self.helper.layout.insert(-2, Formset('STFormset', 'STFormsetHelper'))
+        self.helper.layout.insert(-2,  HTML('''</div>'''))
 
         if not self.user.is_superuser:
             self.helper.layout.insert(-1, HTML(
@@ -193,9 +198,9 @@ class UserUpdateForm(UserForm):
             self.fields['last_date'].widget = HiddenInput()
             self.fields['is_active'].widget = HiddenInput()
         else:
-            for name, field in self.fields.items():
-                if name in ['last_name', 'first_name', 'date_joined', 'salary', 'department', 'title', 'grade']:
-                    field.disabled = True
+            # for name, field in self.fields.items():
+            #     if name in ['date_joined']:
+            self.fields['date_joined'].disabled = True
 
     def clean(self):
         data = super().clean()
@@ -212,6 +217,7 @@ class AcademicRecordForm(ModelForm):
         widgets = {
             'date_start': DateInput(),
             'date_end': DateInput(),
+            'DELETE': HiddenInput(),
         }
 
     def clean_year_completed(self):
@@ -255,6 +261,7 @@ class EmploymentHistoryForm(ModelForm):
         widgets = {
             'date_start': DateInput(),
             'date_end': DateInput(),
+            'DELETE': HiddenInput(),
         }
 
 
@@ -277,6 +284,42 @@ class EmploymentHistoryFormsetHelper(FormHelper):
                        css_class='col-md-1 text-center'),
                 'user',
                 'id',
+                'DELETE',
                 css_class='form-row employment-history-formset'
+            ),
+        )
+
+
+class SalaryTitleRecordForm(ModelForm):
+    class Meta:
+        model = SalaryTitleRecord
+        fields = '__all__'
+        widgets = {
+            'date_changed': DateInput(),
+            'salary': NumberInput(attrs={'class': 'two-decimal'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(SalaryTitleRecordForm, self).__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.disabled = True
+
+
+class SalaryTitleRecordFormsetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super(SalaryTitleRecordFormsetHelper, self).__init__(*args, **kwargs)
+        self.layout = Layout(
+            Row(
+                Column(Field('date_changed'),
+                       css_class='col-sm-1'),
+                Column(Field('department'),
+                       css_class='col-sm-3'),
+                Column(Field('title'),
+                       css_class='col-sm-3'),
+                Column(Field('salary'),
+                       css_class='col-sm-2'),
+                Column(Field('grade'),
+                       css_class='col-md-2'),
+                css_class='form-row salary-title-formset'
             ),
         )

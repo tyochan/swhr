@@ -10,7 +10,6 @@ from django.forms.models import inlineformset_factory
 
 # Form classes
 from . import forms
-from django.forms import HiddenInput
 
 # Response
 from django.http import HttpResponseRedirect
@@ -114,7 +113,6 @@ class UserCreateView(PermissionRequiredMixin, CreateView):
         context = self.get_context_data()
         ARFormset = context['ARFormset']
         EHFormset = context['EHFormset']
-        # print(EHFormset.cleaned_data)
         if ARFormset.is_valid() and form.is_valid() and EHFormset.is_valid():
             super().form_valid(form)  # Save User object
             data = form.cleaned_data
@@ -159,15 +157,18 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
         User, AcademicRecord,
         form=forms.AcademicRecordForm,
         can_delete=True,
-        widgets={'DELETE': HiddenInput()},
-        extra=0
+        extra=1,
     )
     EmploymentHistoryInlineFormset = inlineformset_factory(
         User, EmploymentHistory,
         form=forms.EmploymentHistoryForm,
         can_delete=True,
-        widgets={'DELETE': HiddenInput()},
-        extra=0
+        extra=1,
+    )
+    SalaryTitleRecordInlineFormset = inlineformset_factory(
+        User, SalaryTitleRecord,
+        form=forms.SalaryTitleRecordForm,
+        extra=0,
     )
 
     def test_func(self):
@@ -182,12 +183,13 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super(UserUpdateView, self).get_context_data(**kwargs)
         if self.request.POST:
+            user = self.get_object()
             context['ARFormset'] = self.AcademicRecordInlineFormset(
-                self.request.POST, prefix='academicRecord')
+                self.request.POST, instance=user, prefix='academicRecord')
             context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
 
             context['EHFormset'] = self.EmploymentHistoryInlineFormset(
-                self.request.POST, prefix='employmentHistory')
+                self.request.POST, instance=user, prefix='employmentHistory')
             context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
         else:
             user = self.get_object()
@@ -202,17 +204,35 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
                 prefix='employmentHistory'
             )
             context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
+            context['STFormset'] = self.SalaryTitleRecordInlineFormset(
+                instance=user,
+            )
+            context['STFormsetHelper'] = forms.SalaryTitleRecordFormsetHelper()
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
         ARFormset = context['ARFormset']
         EHFormset = context['EHFormset']
-        # print(EHFormset.cleaned_data)
-        if ARFormset.is_valid() and form.is_valid() and EHFormset.is_valid():
+        if form.is_valid() and ARFormset.is_valid() and EHFormset.is_valid():
+            user = self.get_object()
+            data = form.cleaned_data
+            if data['department'] != user.department or data['title'] != user.title or data['salary'] != user.salary or data['grade'] != user.grade:
+                salary_title_record = SalaryTitleRecord(
+                    date_changed=datetime.date.today(), department=data['department'], salary=data['salary'], title=data['title'], grade=data['grade'], user=user)
+                try:
+                    salary_title_record.save()
+                except Exception as e:
+                    print('Error with salary title record update.')
             super().form_valid(form)  # Save User object
-            ARFormset.save()
-            EHFormset.save()
+            try:
+                ARFormset.save()
+            except Exception as e:
+                print('Error with AR Form')
+            try:
+                EHFormset.save()
+            except Exception as e:
+                print('Error with EH Form')
             return HttpResponseRedirect(reverse_lazy('personal_details:index'))
         return self.render_to_response(self.get_context_data(form=form))
 

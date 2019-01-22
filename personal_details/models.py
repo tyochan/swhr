@@ -53,6 +53,8 @@ class User(AbstractUser):
                                       choices=choices.MARITAL_STATUS, verbose_name='Marital Status')
 
     # Pay Info
+    old_annual_leave = models.FloatField(
+        default=0, verbose_name='Old Annual Leave')
     annual_leave = models.FloatField(default=0, verbose_name='Annual Leave')
     bank = models.CharField(
         max_length=50, choices=choices.BANK_LIST, default='024', blank=True)
@@ -95,9 +97,9 @@ class SalaryTitleRecord(models.Model):
     department = models.CharField(choices=choices.DEPARTMENT_LIST, max_length=100,
                                   default='AD')
     salary = models.FloatField()
-    title = models.CharField(choices=choices.TITLE_GRADE,
-                             max_length=30, verbose_name='Title')
-    grade = models.CharField(max_length=10, verbose_name='Grade')
+    title = models.CharField(max_length=30, verbose_name='Title')
+    grade = models.CharField(
+        default='U1', choices=choices.TITLE_GRADE, max_length=10, verbose_name='Grade')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -110,7 +112,7 @@ class AcademicRecord(models.Model):
     date_end = models.DateField(verbose_name='End Date')
     institution_name = models.CharField(
         default='Institution Name', max_length=50, verbose_name='Institution Name')
-    qualification = models.CharField(default='Qualifictation', max_length=100)
+    qualification = models.CharField(default='Qualification', max_length=100)
     year_completed = models.CharField(default=datetime.date.today().year, choices=choices.YEAR_LIST,
                                       max_length=4, verbose_name='Year')
 
