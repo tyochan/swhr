@@ -42,7 +42,7 @@ class IndexView(LoginRequiredMixin, ListView):
                 return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
                                                                Q(user__staff_id__contains=staff_id),
                                                                Q(user__last_name__contains=name)
-                                                               | Q(user__first_name__contains=name),
+                                                               | Q(user__first_name__contains=name) | Q(user__nick_name__contains=name),
                                                                Q(type__contains=type),
                                                                Q(day_type__contains=day_type),
                                                                Q(status__contains=status),)

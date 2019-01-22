@@ -47,7 +47,7 @@ class IndexView(LoginRequiredMixin, ListView):
 
                 return Payment.objects.order_by(order_by).filter(Q(user__staff_id__contains=staff_id),
                                                                  Q(user__last_name__contains=name)
-                                                                 | Q(user__first_name__contains=name),
+                                                                 | Q(user__first_name__contains=name) | Q(user__nick_name__contains=name),
                                                                  Q(status__contains=status),
                                                                  Q(is_last=is_last),)
             else:

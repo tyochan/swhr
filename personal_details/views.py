@@ -45,7 +45,7 @@ class IndexView(LoginRequiredMixin, ListView):
 
                 return User.objects.order_by(order_by).filter(Q(staff_id__contains=staff_id),
                                                               Q(last_name__contains=name)
-                                                              | Q(first_name__contains=name),
+                                                              | Q(first_name__contains=name) | Q(nick_name__contains=name),
                                                               Q(is_active=is_active),
                                                               Q(is_staff=False),)
             else:
