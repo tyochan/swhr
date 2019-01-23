@@ -34,9 +34,13 @@ class Formset(LayoutObject):
     def render(self, form, form_style, context, **kwargs):
         formset = context.get(self.formset_context_name)
         helper = context.get(self.helper_context_name)
+
         # closes form prematurely if this isn't explicitly stated
         if helper:
             helper.form_tag = False
+            if not formset.can_delete:
+                print('%s not for delete.' % self.formset_context_name)
+                helper.layout[0].pop(-1)
 
         context.update({'formset': formset, 'helper': helper})
         return render_to_string(self.template, context.flatten())

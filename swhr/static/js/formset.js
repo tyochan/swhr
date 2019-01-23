@@ -10,6 +10,7 @@
  * See: http://www.opensource.org/licenses/bsd-license.php
  */
 ;
+
 (function($) {
   $.fn.formset = function(opts) {
     var options = $.extend({}, $.fn.formset.defaults, opts),
@@ -61,12 +62,14 @@
             buttonRow = row.siblings("a." + addCssSelector + ', .' + options.formCssClass + '-add'),
             forms;
           var blank = false
+
+          // Find new blank input
           row.children().not(':hidden').each(function() {
             if ($(this).find('input, select').not(':hidden').val() == '') {
               blank = true
             }
           })
-          if (!blank && del.length) {
+          if (del.length) {
             // We're dealing with an inline formset.
             // Rather than remove this form from the DOM, we'll mark it as deleted
             // and hide it, then let Django handle the deleting:
@@ -106,7 +109,13 @@
 
     $$.each(function(i) {
       var row = $(this),
-        del = row.find('input:checkbox[id$="-DELETE"]');
+        del = row.find('input:checkbox[id$="-DELETE"]'),
+        delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, '.');
+      if (!showDeleteLinks()) {
+        $('a.' + delCssSelector).each(function() {
+          $(this).hide();
+        });
+      }
       if (del.length) {
         // If you specify "can_delete = True" when creating an inline formset,
         // Django adds a checkbox to each form in the formset.
@@ -164,7 +173,7 @@
       options.formTemplate = template;
 
       // Insert it immediately after the last form:
-      $$.filter(':last').after('<a class="' + options.addCssClass + '" href="javascript:void(0)">' + options.addText + '</a>');
+      $$.filter(':last').after('<a class="' + options.addCssClass + ' pb-3" href="javascript:void(0)">' + options.addText + '</a>');
       addButton = $$.filter(':last').next();
       if (hideAddButton) addButton.hide();
 

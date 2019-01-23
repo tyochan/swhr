@@ -6,6 +6,7 @@ from django.forms.models import inlineformset_factory
 
 # Models
 from .models import User, EmploymentHistory, Spouse, AcademicRecord, SalaryTitleRecord
+from django.template.defaultfilters import slugify
 
 # Crispy Forms
 from crispy_forms.helper import FormHelper
@@ -52,41 +53,30 @@ class UserForm(ModelForm):
                 <div class="border container col-sm-12">
                     <label class="col-form-label font-weight-bold text-info">Basic Info</label>
             '''),
-            Field('username', readonly=True),
-            Field('password', readonly=True),
+            'username',
+            'password',
             Row(
                 Column(Field('staff_id', readonly=True),
                        css_class='col-sm-3'),
-                Column(Field('last_name'),
-                       css_class='col-md-3'),
-                Column(Field('first_name'),
-                       css_class='col-md-3'),
+                Column('last_name', css_class='col-md-3'),
+                Column('first_name', css_class='col-md-3'),
                 Column('nick_name', css_class='col-md-3'),
-
                 css_class='form-row'
             ),
             Row(
-                Column(Field('mobile'),
-                       css_class='col-sm-2'),
-                Column(Field('email'),
-                       css_class='col-sm-3'),
-                Column(Field('birth_date'),
-                       css_class='col-md-2'),
-                Column(Field('identity_type'),
-                       css_class='col-md-2'),
-                Column(Field('identity_no'),
-                       css_class='col-md-3'),
+                Column('mobile', css_class='col-sm-2'),
+                Column('email', css_class='col-sm-3'),
+                Column('birth_date', css_class='col-md-2'),
+                Column('identity_type', css_class='col-md-2'),
+                Column('identity_no', css_class='col-md-3'),
                 css_class='form-row'
             ),
             Row(
-                Column(Field('department'),
-                       css_class='col-sm-3'),
-                Column(Field('title'),
-                       css_class='col-sm-3'),
+                Column('department', css_class='col-sm-3'),
+                Column('title', css_class='col-sm-3'),
                 Column(PrependedText('salary', '$'),
                        css_class='col-md-2'),
-                Column(Field('grade'),
-                       css_class='col-sm-2'),
+                Column('grade', css_class='col-sm-2'),
                 Column(AppendedText('annual_leave', 'Days'),
                        css_class='col-md-2'),
                 css_class='form-row'
@@ -101,28 +91,20 @@ class UserForm(ModelForm):
                 css_class='form-row'
             ),
             Row(
-                Column(Field('address'),
-                       css_class='col-sm-12'),
+                Column('address', css_class='col-sm-12'),
                 css_class='form-row'
             ),
             Row(
-                Column(Field('marital_status'),
-                       css_class='col-sm-2'),
-                Column(Field('spouse_name'),
-                       css_class='col-sm-3'),
-                Column(Field('spouse_identity_type'),
-                       css_class='col-sm-2'),
-                Column(Field('spouse_identity_no'),
-                       css_class='col-sm-3'),
+                Column('marital_status', css_class='col-sm-2'),
+                Column('spouse_name', css_class='col-sm-3'),
+                Column('spouse_identity_type', css_class='col-sm-2'),
+                Column('spouse_identity_no', css_class='col-sm-3'),
                 css_class='form-row'
             ),
             Row(
-                Column(Field('emergency_contact_name'),
-                       css_class='col-md-3'),
-                Column(Field('emergency_contact_number'),
-                       css_class='col-md-3'),
-                Column(Field('emergency_contact_relationship'),
-                       css_class='col-md-3'),
+                Column('emergency_contact_name', css_class='col-md-3'),
+                Column('emergency_contact_number', css_class='col-md-3'),
+                Column('emergency_contact_relationship', css_class='col-md-3'),
                 css_class='form-row'
             ),
             HTML('''
@@ -156,8 +138,9 @@ class UserForm(ModelForm):
     def clean(self):
         data = super().clean()
         if data['marital_status'] != 'SI' and not (data['spouse_name'] or data['spouse_identity_no']):
-            raise ValidationError(
-                'Spouse information is needed if user is not single.')
+            msg = 'This field is required if user is not single.'
+            self.add_error('spouse_name', msg)
+            self.add_error('spouse_identity_no', msg)
         return super().clean()
 
 
@@ -170,6 +153,8 @@ class UserCreateForm(UserForm):
 
     def clean(self):
         data = super().clean()
+        data['slug'] = slugify(data['staff_id'])
+        data['username'] = data['staff_id']
         data['password'] = hashers.make_password(data['staff_id'].strip())
         return data
 
@@ -186,27 +171,32 @@ class UserUpdateForm(UserForm):
         self.helper.layout.insert(-2, Formset('STFormset', 'STFormsetHelper'))
         self.helper.layout.insert(-2,  HTML('''</div>'''))
 
+        # Should not be able to update any of these
+        for name, field in self.fields.items():
+            if name in ['username', 'password', 'staff_id', 'slug']:
+                field.disabled = True
+
         if not self.user.is_superuser:
             self.helper.layout.insert(-1, HTML(
                 '<a href="{% url \'change_password\' %}" class="btn btn-outline-info" role="button">Change Password</a> '))
             self.helper.layout.pop(-1)
 
             for name, field in self.fields.items():
-                if name not in ['nick_name', 'bank', 'bank_acc', 'mobile', 'email', 'address', 'emergency_contact_name', 'emergency_contact_number', 'emergency_contact_relationship']:
+                if name not in ['nick_name', 'bank', 'bank_acc', 'mobile',
+                                'email', 'address', 'emergency_contact_name',
+                                'emergency_contact_number', 'emergency_contact_relationship']:
                     field.disabled = True
 
             self.fields['last_date'].widget = HiddenInput()
             self.fields['is_active'].widget = HiddenInput()
         else:
-            # for name, field in self.fields.items():
-            #     if name in ['date_joined']:
             self.fields['date_joined'].disabled = True
 
     def clean(self):
         data = super().clean()
         if not data['is_active'] and not data['last_date']:
-            raise ValidationError(
-                'Last date is needed if staff is inactive.')
+            self.add_error(
+                last_date, 'This field is required if staff is inactive.')
         return super().clean()
 
 
@@ -214,16 +204,10 @@ class AcademicRecordForm(ModelForm):
     class Meta:
         model = AcademicRecord
         fields = '__all__'
-        widgets = {
-            'date_start': DateInput(),
-            'date_end': DateInput(),
-            'DELETE': HiddenInput(),
-        }
 
     def clean_year_completed(self):
         year_completed = self.cleaned_data['year_completed']
-        max_year = datetime.date.today().year
-        if int(year_completed) > max_year:
+        if year_completed != '' and int(year_completed) > datetime.date.today().year:
             raise ValidationError(
                 'Completed year is larger than current year.')
         return year_completed
@@ -234,21 +218,17 @@ class AcademicRecordFormsetHelper(FormHelper):
         super(AcademicRecordFormsetHelper, self).__init__(*args, **kwargs)
         self.layout = Layout(
             Row(
-                Column(Field('date_start'),
-                       css_class='col-sm-1'),
-                Column(Field('date_end'),
-                       css_class='col-sm-1'),
-                Column(Field('institution_name'),
-                       css_class='col-sm-4'),
-                Column(Field('qualification'),
-                       css_class='col-sm-4'),
-                Column(Field('year_completed'),
-                       css_class='col-md-1'),
-                Column(HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-ar-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
-                       css_class='col-md-1 text-center'),
+                Column('date_start', css_class='col-sm-1'),
+                Column('date_end', css_class='col-sm-1'),
+                Column('institution_name', css_class='col-sm-4'),
+                Column('qualification', css_class='col-sm-4'),
+                Column('year_completed', css_class='col-sm-1'),
+                Column(
+                    HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-ar-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
+                    css_class='col-sm-1 text-center'),
                 'user',
                 'id',
-                'DELETE',
+                Column('DELETE', css_class='d-none'),
                 css_class='form-row academic-record-formset'
             ),
         )
@@ -258,11 +238,6 @@ class EmploymentHistoryForm(ModelForm):
     class Meta:
         model = EmploymentHistory
         fields = '__all__'
-        widgets = {
-            'date_start': DateInput(),
-            'date_end': DateInput(),
-            'DELETE': HiddenInput(),
-        }
 
 
 class EmploymentHistoryFormsetHelper(FormHelper):
@@ -270,21 +245,16 @@ class EmploymentHistoryFormsetHelper(FormHelper):
         super(EmploymentHistoryFormsetHelper, self).__init__(*args, **kwargs)
         self.layout = Layout(
             Row(
-                Column(Field('date_start'),
-                       css_class='col-sm-1'),
-                Column(Field('date_end'),
-                       css_class='col-sm-1'),
-                Column(Field('employer_name'),
-                       css_class='col-sm-3'),
-                Column(Field('position'),
-                       css_class='col-sm-2'),
-                Column(Field('reason'),
-                       css_class='col-md-4'),
+                Column('date_start', css_class='col-sm-1'),
+                Column('date_end', css_class='col-sm-1'),
+                Column('employer_name', css_class='col-sm-3'),
+                Column('position', css_class='col-sm-2'),
+                Column('reason', css_class='col-md-4'),
                 Column(HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-eh-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
                        css_class='col-md-1 text-center'),
                 'user',
                 'id',
-                'DELETE',
+                Column('DELETE', css_class='d-none'),
                 css_class='form-row employment-history-formset'
             ),
         )
@@ -310,16 +280,11 @@ class SalaryTitleRecordFormsetHelper(FormHelper):
         super(SalaryTitleRecordFormsetHelper, self).__init__(*args, **kwargs)
         self.layout = Layout(
             Row(
-                Column(Field('date_changed'),
-                       css_class='col-sm-1'),
-                Column(Field('department'),
-                       css_class='col-sm-3'),
-                Column(Field('title'),
-                       css_class='col-sm-3'),
-                Column(Field('salary'),
-                       css_class='col-sm-2'),
-                Column(Field('grade'),
-                       css_class='col-md-2'),
+                Column('date_changed', css_class='col-sm-1'),
+                Column('department', css_class='col-sm-3'),
+                Column('title', css_class='col-sm-3'),
+                Column('salary', css_class='col-sm-2'),
+                Column('grade', css_class='col-md-2'),
                 css_class='form-row salary-title-formset'
             ),
         )

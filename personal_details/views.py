@@ -10,6 +10,7 @@ from django.forms.models import inlineformset_factory
 
 # Form classes
 from . import forms
+from django.forms import HiddenInput
 
 # Response
 from django.http import HttpResponseRedirect
@@ -80,40 +81,57 @@ class UserCreateView(PermissionRequiredMixin, CreateView):
         User, AcademicRecord,
         form=forms.AcademicRecordForm,
         can_delete=False,
-        extra=1
+        extra=1,
     )
     EmploymentHistoryInlineFormset = inlineformset_factory(
         User, EmploymentHistory,
         form=forms.EmploymentHistoryForm,
         can_delete=False,
-        extra=1
+        extra=1,
     )
 
     def get_context_data(self, **kwargs):
         context = super(UserCreateView, self).get_context_data(**kwargs)
         if self.request.POST:
             context['ARFormset'] = self.AcademicRecordInlineFormset(
-                self.request.POST, prefix='academicRecord')
+                self.request.POST,
+                prefix='academicRecord'
+            )
             context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
 
             context['EHFormset'] = self.EmploymentHistoryInlineFormset(
-                self.request.POST, prefix='employmentHistory')
+                self.request.POST,
+                prefix='employmentHistory'
+            )
             context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
         else:
             context['ARFormset'] = self.AcademicRecordInlineFormset(
-                prefix='academicRecord')
+                prefix='academicRecord'
+            )
             context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
 
             context['EHFormset'] = self.EmploymentHistoryInlineFormset(
-                prefix='employmentHistory')
+                prefix='employmentHistory'
+            )
             context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
         return context
 
-    def form_valid(self, form):
+    def form_invalid(self, form):
         context = self.get_context_data()
         ARFormset = context['ARFormset']
         EHFormset = context['EHFormset']
-        if ARFormset.is_valid() and form.is_valid() and EHFormset.is_valid():
+        print("Form is valid if True: basic-%s, ARForm-%s, EHForm-%s" %
+              (form.is_valid(), ARFormset.is_valid(), EHFormset.is_valid()))
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def form_valid(self, form):
+        print('Validating Form')
+        context = self.get_context_data()
+        ARFormset = context['ARFormset']
+        EHFormset = context['EHFormset']
+        print("Form is valid if True: basic-%s, ARForm-%s, EHForm-%s" %
+              (form.is_valid(), ARFormset.is_valid(), EHFormset.is_valid()))
+        if form.is_valid() and ARFormset.is_valid() and EHFormset.is_valid():
             super().form_valid(form)  # Save User object
             data = form.cleaned_data
             user = User.objects.get(
@@ -121,30 +139,50 @@ class UserCreateView(PermissionRequiredMixin, CreateView):
 
             # Spouse
             if data['marital_status'] != 'SI':
-                spouse = Spouse(
-                    user=user, name=data['spouse_name'], identity_type=data['spouse_identity_type'], identity_no=data['spouse_identity_no'])
-                spouse.save()
+                try:
+                    spouse = Spouse(
+                        user=user, name=data['spouse_name'], identity_type=data['spouse_identity_type'], identity_no=data['spouse_identity_no'])
+                    spouse.save()
+                except Exception as e:
+                    print('Something\'s wrong when creating spouse for %s' % user)
 
             # SalaryTitleRecord
-            salary_title_record = SalaryTitleRecord(
-                date_changed=data['date_joined'], department=data['department'], salary=data['salary'], title=data['title'], grade=data['grade'], user=user)
-            salary_title_record.save()
+            try:
+                salary_title_record = SalaryTitleRecord(
+                    date_changed=data['date_joined'], department=data['department'], salary=data['salary'], title=data['title'], grade=data['grade'], user=user)
+                salary_title_record.save()
+            except Exception as e:
+                print(
+                    'Something\'s wrong when creating salary title record for %s' % user)
 
             # AcademicRecord
-            for f in ARFormset:
-                form_data = f.cleaned_data
-                if form_data:
-                    academicRecord = AcademicRecord(date_start=form_data['date_start'], date_end=form_data['date_end'], institution_name=form_data[
-                                                    'institution_name'], qualification=form_data['qualification'], year_completed=form_data['year_completed'], user=user)
-                    academicRecord.save()
+            try:
+                for f in ARFormset:
+                    form_data = f.cleaned_data
+                    if form_data:
+                        academicRecord = AcademicRecord(date_start=form_data['date_start'], date_end=form_data['date_end'], institution_name=form_data[
+                                                        'institution_name'], qualification=form_data['qualification'], year_completed=form_data['year_completed'], user=user)
+                        academicRecord.save()
+                        print(academicRecord)
+            except Exception as e:
+                print(
+                    'Something\'s wrong when creating academic record for %s' % user)
 
-            for f in EHFormset:
-                form_data = f.cleaned_data
-                if form_data:
-                    employmentHistory = EmploymentHistory(date_start=form_data['date_start'], date_end=form_data['date_end'], employer_name=form_data[
-                        'employer_name'], position=form_data['position'], reason=form_data['reason'], user=user)
-                    employmentHistory.save()
+            try:
+                for f in EHFormset:
+                    form_data = f.cleaned_data
+                    if form_data:
+                        employmentHistory = EmploymentHistory(date_start=form_data['date_start'], date_end=form_data['date_end'], employer_name=form_data[
+                            'employer_name'], position=form_data['position'], reason=form_data['reason'], user=user)
+                        employmentHistory.save()
+                        print(employmentHistory)
+            except Exception as e:
+                print(
+                    'Something\'s wrong when creating employment history record for %s' % user)
+
             return HttpResponseRedirect(reverse_lazy('personal_details:index'))
+
+        print('Something\'s wrong with form validation')
         return self.render_to_response(self.get_context_data(form=form))
 
 
@@ -158,16 +196,23 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
         form=forms.AcademicRecordForm,
         can_delete=True,
         extra=1,
+        widgets={
+            'DELETE': HiddenInput(),
+        }
     )
     EmploymentHistoryInlineFormset = inlineformset_factory(
         User, EmploymentHistory,
         form=forms.EmploymentHistoryForm,
         can_delete=True,
         extra=1,
+        widgets={
+            'DELETE': HiddenInput(),
+        }
     )
     SalaryTitleRecordInlineFormset = inlineformset_factory(
         User, SalaryTitleRecord,
         form=forms.SalaryTitleRecordForm,
+        can_delete=False,
         extra=0,
     )
 
