@@ -111,9 +111,24 @@ class UserForm(ModelForm):
                 </div>
                 <div class="container col-sm-12 border">
                     <label class="col-form-label font-weight-bold text-primary">Academic Record</label>
+                    <!--
+                    <table style="width:100%;" class="academic-record-formset">
+                        <thead>
+                        <tr>
+                            <th class="pr-2">Start Date</th>
+                            <th class="pr-2">End Date</th>
+                            <th class="pr-2">Institution Name</th>
+                            <th class="pr-2">Qualification</th>
+                            <th class="pr-2">Year</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>-->
             '''),
             Formset('ARFormset', 'ARFormsetHelper'),
             HTML('''
+                    </tbody>
+                </table>
                 </div>
                 <div class="container col-sm-12 border">
                     <label class="col-form-label font-weight-bold text-secondary">Employment History</label>'''),
@@ -123,7 +138,7 @@ class UserForm(ModelForm):
             '''),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
             HTML(
-                '<a href="{% url \'personal_details:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>')
+                '<a href="{% url \'personal_details:index\' %}" class="btn btn-outline-secondary mt-2 mb-2" role="button">Back</a>')
         )
 
         # Required fields
@@ -167,25 +182,35 @@ class UserUpdateForm(UserForm):
             Submit, 'Update', css_class="btn-outline-primary")
         self.helper.layout.insert(-2,
                                   HTML('''<div class="container col-sm-12 border">
-                                  <label class="col-form-label font-weight-bold text-warning">Salary & Title</label>'''))
+                                            <label class="col-form-label font-weight-bold text-warning">Salary & Title</label>
+                                            <table style="width:100%; class="table">
+                                                <thead>
+                                                <tr>
+                                                    <th class="pr-2" style="width:8%;">Date</th>
+                                                    <th class="pr-2" style="width:25%;">Department</th>
+                                                    <th class="pr-2" style="width:25%;">Title</th>
+                                                    <th class="pr-2" style="width:16.6667%;">Salary</th>
+                                                    <th class="pr-2" style="width:8%;">Grade</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                  '''))
         self.helper.layout.insert(-2, Formset('STFormset', 'STFormsetHelper'))
-        self.helper.layout.insert(-2,  HTML('''</div>'''))
+        self.helper.layout.insert(-2,  HTML('''</tbody></table></div>'''))
 
         # Should not be able to update any of these
-        for name, field in self.fields.items():
-            if name in ['username', 'password', 'staff_id', 'slug']:
-                field.disabled = True
+        for name in ['username', 'password', 'staff_id', 'slug']:
+            self.fields[name].disabled = True
 
         if not self.user.is_superuser:
             self.helper.layout.insert(-1, HTML(
                 '<a href="{% url \'change_password\' %}" class="btn btn-outline-info" role="button">Change Password</a> '))
             self.helper.layout.pop(-1)
 
-            for name, field in self.fields.items():
-                if name not in ['nick_name', 'bank', 'bank_acc', 'mobile',
-                                'email', 'address', 'emergency_contact_name',
-                                'emergency_contact_number', 'emergency_contact_relationship']:
-                    field.disabled = True
+            for name in ['nick_name', 'bank', 'bank_acc', 'mobile',
+                         'email', 'address', 'emergency_contact_name',
+                         'emergency_contact_number', 'emergency_contact_relationship']:
+                self.fields[name].disabled = True
 
             self.fields['last_date'].widget = HiddenInput()
             self.fields['is_active'].widget = HiddenInput()
@@ -244,6 +269,22 @@ class EmploymentHistoryFormsetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super(EmploymentHistoryFormsetHelper, self).__init__(*args, **kwargs)
         self.layout = Layout(
+            # HTML('''<tr><td class="pr-2">'''),
+            # 'date_start',
+            # HTML('''</td><td class="pr-2">'''),
+            # 'date_end',
+            # HTML('''</td><td class="pr-2">'''),
+            # 'employer_name',
+            # HTML('''</td><td class="pr-2">'''),
+            # 'position',
+            # HTML('''</td><td class="pr-2">'''),
+            # 'reason',
+            # HTML('''</td><td class="pr-2">'''),
+            # HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-eh-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
+            # 'user',
+            # 'id',
+            # Field('DELETE', css_class='d-none'),
+            # HTML('''</td></tr>'''),
             Row(
                 Column('date_start', css_class='col-sm-1'),
                 Column('date_end', css_class='col-sm-1'),
@@ -278,13 +319,25 @@ class SalaryTitleRecordForm(ModelForm):
 class SalaryTitleRecordFormsetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super(SalaryTitleRecordFormsetHelper, self).__init__(*args, **kwargs)
+        self.form_show_labels = False
         self.layout = Layout(
-            Row(
-                Column('date_changed', css_class='col-sm-1'),
-                Column('department', css_class='col-sm-3'),
-                Column('title', css_class='col-sm-3'),
-                Column('salary', css_class='col-sm-2'),
-                Column('grade', css_class='col-md-2'),
-                css_class='form-row salary-title-formset'
-            ),
+            HTML('''<tr><td class="pr-2">'''),
+            'date_changed',
+            HTML('''</td><td class="pr-2">'''),
+            'department',
+            HTML('''</td><td class="pr-2">'''),
+            'title',
+            HTML('''</td><td class="pr-2">'''),
+            'salary',
+            HTML('''</td><td class="pr-2">'''),
+            'grade',
+            HTML('''</td></tr>'''),
+            # Row(
+            #     Column('date_changed', css_class='col-sm-1'),
+            #     Column('department', css_class='col-sm-3'),
+            #     Column('title', css_class='col-sm-3'),
+            #     Column('salary', css_class='col-sm-2'),
+            #     Column('grade', css_class='col-md-2'),
+            #     css_class='form-row salary-title-formset'
+            # ),
         )

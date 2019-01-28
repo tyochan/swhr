@@ -71,6 +71,11 @@
           <a href="?order_by=-status&{{filter}}" class="fas fa-caret-down"></a>
         </th>
         <th>Action</th>
+        {% if request.user.is_superuser %}
+        <th>
+          PDF
+        </th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -94,6 +99,13 @@
           {% else %}
           <a href="{% url 'payroll:update_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% endif %}
+          {% endif %}
+        </td>
+        <td>
+          {% if p.is_last %}
+          <a href="{% url 'payroll:last_payslip_pdf' p.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
+          {% else %}
+          <a href="{% url 'payroll:payslip_pdf' p.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
           {% endif %}
         </td>
       </tr>

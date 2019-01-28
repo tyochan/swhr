@@ -71,7 +71,7 @@ class User(AbstractUser):
     )
     title = models.CharField(
         default='-',
-        max_length=10,
+        max_length=50,
     )
     grade = models.CharField(
         choices=choices.TITLE_GRADE,
@@ -228,25 +228,20 @@ class Spouse(models.Model):
 class EmploymentHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     employer_name = models.CharField(
-        # default='',
         max_length=50,
         verbose_name='Employer Name'
     )
     date_start = models.DateField(
-        # default='',
         verbose_name='Start Date'
     )
     date_end = models.DateField(
-        # default='',
         verbose_name='End Date'
     )
     position = models.CharField(
-        # default='',
         max_length=50,
         verbose_name='Last Position'
     )
     reason = models.CharField(
-        # default='',
         max_length=50,
         verbose_name='Reasons for Leaving'
     )
