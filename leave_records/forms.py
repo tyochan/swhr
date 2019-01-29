@@ -23,31 +23,36 @@ class LeaveForm(ModelForm):
         super(LeaveForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
+            HTML('''
+                <div class="container col-sm-6 mt-3">
+            '''),
             Row(
-                Column('user', css_class='form-group col-md-3'),
+                Column('user', css_class='col-md-4'),
                 Column(Field('day_type'),
-                       css_class='form-group col-md-1'),
-                Column('start_date', css_class='form-group col-md-1'),
+                       css_class='col-md-2'),
+                Column('start_date', css_class='col-md-3'),
                 Column(Field('end_date', readonly=True),
-                       css_class='form-group col-md-1'),
+                       css_class='col-md-3'),
                 css_class='form-row'
             ),
             Row(
                 Column(AppendedText('spend', 'Days', readonly=True),
-                       css_class='form-group col-md-2'),
+                       css_class='col-md-4'),
                 Column(Field('type'),
-                       css_class='form-group col-md-2'),
-                Column('status', css_class="form-group col-md-2"),
+                       css_class='col-md-4'),
+                Column('status', css_class="form-group col-md-4"),
                 css_class='form-row'
             ),
             Row(
-                Column('remarks', css_class="form-group col-md-6"),
-
+                Column('remarks', css_class="col-md-12"),
                 css_class='form-row',
             ),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
             HTML(
                 '<a href="{% url \'leave_records:index\' %}" class="btn btn-outline-secondary" role="button">Back</a>'),
+            HTML('''
+                </div>
+            '''),
         )
 
         # Avaliabiility of field (can't enable by js if disabled)

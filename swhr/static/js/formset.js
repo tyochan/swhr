@@ -56,6 +56,24 @@
         var delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, '.'),
           addCssSelector = $.trim(options.addCssClass).replace(/\s+/g, '.');
 
+        if (row.is('TR')) {
+          // If the forms are laid out in table rows, insert
+          // the remove button into the last table cell:
+          // row.children(':last').append('<a class="' + options.deleteCssClass + '" href="javascript:void(0)">' + options.deleteText + '</a>');
+        } else if (row.is('UL') || row.is('OL')) {
+          // If they're laid out as an ordered/unordered list,
+          // insert an <li> after the last list item:
+          row.append('<li><a class="' + options.deleteCssClass + '" href="javascript:void(0)">' + options.deleteText + '</a></li>');
+        } else {
+          // Otherwise, just insert the remove button as the
+          // last child element of the form's container:
+          row.append('<a class="' + options.deleteCssClass + '" href="javascript:void(0)">' + options.deleteText + '</a>');
+        }
+        // Check if we're under the minimum number of forms - not to display delete link at rendering
+        if (!showDeleteLinks()) {
+          row.find('a.' + delCssSelector).hide();
+        }
+
         row.find('a.' + delCssSelector).click(function() {
           var row = $(this).parents('.' + options.formCssClass),
             del = row.find('input:hidden[id$="-DELETE"]'),
@@ -173,7 +191,7 @@
       options.formTemplate = template;
 
       // Insert it immediately after the last form:
-      $$.filter(':last').after('<a class="' + options.addCssClass + ' pb-3" href="javascript:void(0)">' + options.addText + '</a>');
+      $$.filter(':last').after('<a class="' + options.addCssClass + '" href="javascript:void(0)">' + options.addText + '</a>');
       addButton = $$.filter(':last').next();
       if (hideAddButton) addButton.hide();
 

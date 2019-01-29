@@ -7,6 +7,7 @@ from django.template.defaultfilters import slugify
 import uuid
 from . import choices
 from django.urls import reverse
+import django.utils.timezone
 import datetime
 
 
@@ -40,7 +41,8 @@ class User(AbstractUser):
 
     # Identity
     birth_date = models.DateField(
-        verbose_name='Date of Birth'
+        verbose_name='Date of Birth',
+        default=django.utils.timezone.now,
     )
     identity_type = models.CharField(
         choices=choices.IDENTITY_TYPE,
@@ -146,10 +148,6 @@ class User(AbstractUser):
 
     def get_name(self):
         return '%s %s' % (self.last_name, self.first_name)
-
-    # def save(self, *args, **kwargs):
-    #     self.slug = slugify(self.staff_id)
-    #     super(User, self).save(*args, **kwargs)
 
 
 class SalaryTitleRecord(models.Model):

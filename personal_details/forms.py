@@ -50,7 +50,7 @@ class UserForm(ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             HTML('''
-                <div class="border container col-sm-12">
+                <div class="border container col-sm-12 mt-3">
                     <label class="col-form-label font-weight-bold text-info">Basic Info</label>
             '''),
             'username',
@@ -73,10 +73,10 @@ class UserForm(ModelForm):
             ),
             Row(
                 Column('department', css_class='col-sm-3'),
-                Column('title', css_class='col-sm-3'),
+                Column('title', css_class='col-sm-4'),
                 Column(PrependedText('salary', '$'),
                        css_class='col-md-2'),
-                Column('grade', css_class='col-sm-2'),
+                Column('grade', css_class='col-sm-1'),
                 Column(AppendedText('annual_leave', 'Days'),
                        css_class='col-md-2'),
                 css_class='form-row'
@@ -111,29 +111,43 @@ class UserForm(ModelForm):
                 </div>
                 <div class="container col-sm-12 border">
                     <label class="col-form-label font-weight-bold text-primary">Academic Record</label>
-                    <!--
-                    <table style="width:100%;" class="academic-record-formset">
+                    <table style="width:100%;" class="table formset-table">
                         <thead>
                         <tr>
-                            <th class="pr-2">Start Date</th>
-                            <th class="pr-2">End Date</th>
-                            <th class="pr-2">Institution Name</th>
-                            <th class="pr-2">Qualification</th>
-                            <th class="pr-2">Year</th>
-                            <th></th>
+                            <th style="width:8.5%;">Start Date</th>
+                            <th style="width:8.5%;">End Date</th>
+                            <th style="width:35%;">Institution Name</th>
+                            <th style="width:35%;">Qualification</th>
+                            <th style="width:10%;">Year</th>
+                            <th style="width:5%;"></th>
                         </tr>
                         </thead>
-                        <tbody>-->
+                        <tbody>
             '''),
             Formset('ARFormset', 'ARFormsetHelper'),
             HTML('''
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
                 </div>
                 <div class="container col-sm-12 border">
-                    <label class="col-form-label font-weight-bold text-secondary">Employment History</label>'''),
+                    <label class="col-form-label font-weight-bold text-secondary">Employment History</label>
+                    <table style="width:100%;" class="table formset-table">
+                        <thead>
+                        <tr>
+                            <th style="width:8.5%;">Start Date</th>
+                            <th style="width:8.5%;">End Date</th>
+                            <th style="width:29%;">Employer Name</th>
+                            <th style="width:29%;">Last Position</th>
+                            <th style="width:20%;">Reason for Leaving</th>
+                            <th style="width:5%;"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+            '''),
             Formset('EHFormset', 'EHFormsetHelper'),
             HTML('''
+                        </tbody>
+                    </table>
                 </div>
             '''),
             Submit('submit', 'Save', css_class="btn-outline-primary"),
@@ -183,14 +197,14 @@ class UserUpdateForm(UserForm):
         self.helper.layout.insert(-2,
                                   HTML('''<div class="container col-sm-12 border">
                                             <label class="col-form-label font-weight-bold text-warning">Salary & Title</label>
-                                            <table style="width:100%; class="table">
+                                            <table style="width:100%;" class="table formset-table mb-3">
                                                 <thead>
                                                 <tr>
-                                                    <th class="pr-2" style="width:8%;">Date</th>
-                                                    <th class="pr-2" style="width:25%;">Department</th>
-                                                    <th class="pr-2" style="width:25%;">Title</th>
-                                                    <th class="pr-2" style="width:16.6667%;">Salary</th>
-                                                    <th class="pr-2" style="width:8%;">Grade</th>
+                                                    <th style="width:8%;">Date</th>
+                                                    <th style="width:25%;">Department</th>
+                                                    <th style="width:25%;">Title</th>
+                                                    <th style="width:16.6667%;">Salary</th>
+                                                    <th style="width:8%;">Grade</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -241,21 +255,24 @@ class AcademicRecordForm(ModelForm):
 class AcademicRecordFormsetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super(AcademicRecordFormsetHelper, self).__init__(*args, **kwargs)
+        self.form_show_labels = False
         self.layout = Layout(
-            Row(
-                Column('date_start', css_class='col-sm-1'),
-                Column('date_end', css_class='col-sm-1'),
-                Column('institution_name', css_class='col-sm-4'),
-                Column('qualification', css_class='col-sm-4'),
-                Column('year_completed', css_class='col-sm-1'),
-                Column(
-                    HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-ar-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
-                    css_class='col-sm-1 text-center'),
-                'user',
-                'id',
-                Column('DELETE', css_class='d-none'),
-                css_class='form-row academic-record-formset'
-            ),
+            HTML('''<tr class="academic-record-formset"><td>'''),
+            'date_start',
+            HTML('''</td><td>'''),
+            'date_end',
+            HTML('''</td><td>'''),
+            'institution_name',
+            HTML('''</td><td>'''),
+            'qualification',
+            HTML('''</td><td>'''),
+            'year_completed',
+            HTML('''</td><td class="text-center">'''),
+            HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-ar-btn" style="font-size:1.5rem;"></a>'''),
+            'user',
+            'id',
+            Field('DELETE', css_class='d-none'),
+            HTML('''</td></tr>'''),
         )
 
 
@@ -268,36 +285,24 @@ class EmploymentHistoryForm(ModelForm):
 class EmploymentHistoryFormsetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super(EmploymentHistoryFormsetHelper, self).__init__(*args, **kwargs)
+        self.form_show_labels = False
         self.layout = Layout(
-            # HTML('''<tr><td class="pr-2">'''),
-            # 'date_start',
-            # HTML('''</td><td class="pr-2">'''),
-            # 'date_end',
-            # HTML('''</td><td class="pr-2">'''),
-            # 'employer_name',
-            # HTML('''</td><td class="pr-2">'''),
-            # 'position',
-            # HTML('''</td><td class="pr-2">'''),
-            # 'reason',
-            # HTML('''</td><td class="pr-2">'''),
-            # HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-eh-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
-            # 'user',
-            # 'id',
-            # Field('DELETE', css_class='d-none'),
-            # HTML('''</td></tr>'''),
-            Row(
-                Column('date_start', css_class='col-sm-1'),
-                Column('date_end', css_class='col-sm-1'),
-                Column('employer_name', css_class='col-sm-3'),
-                Column('position', css_class='col-sm-2'),
-                Column('reason', css_class='col-md-4'),
-                Column(HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-eh-btn" style="font-size:1.5rem; padding-top:45px;"></a>'''),
-                       css_class='col-md-1 text-center'),
-                'user',
-                'id',
-                Column('DELETE', css_class='d-none'),
-                css_class='form-row employment-history-formset'
-            ),
+            HTML('''<tr class="employment-history-formset"><td>'''),
+            'date_start',
+            HTML('''</td><td>'''),
+            'date_end',
+            HTML('''</td><td>'''),
+            'employer_name',
+            HTML('''</td><td>'''),
+            'position',
+            HTML('''</td><td>'''),
+            'reason',
+            HTML('''</td><td class="text-center">'''),
+            HTML('''<a role="button" class="fas fa-minus-circle text-danger minus-eh-btn" style="font-size:1.5rem;"></a>'''),
+            'user',
+            'id',
+            Field('DELETE', css_class='d-none'),
+            HTML('''</td></tr>'''),
         )
 
 
@@ -321,23 +326,15 @@ class SalaryTitleRecordFormsetHelper(FormHelper):
         super(SalaryTitleRecordFormsetHelper, self).__init__(*args, **kwargs)
         self.form_show_labels = False
         self.layout = Layout(
-            HTML('''<tr><td class="pr-2">'''),
+            HTML('''<tr><td>'''),
             'date_changed',
-            HTML('''</td><td class="pr-2">'''),
+            HTML('''</td><td>'''),
             'department',
-            HTML('''</td><td class="pr-2">'''),
+            HTML('''</td><td>'''),
             'title',
-            HTML('''</td><td class="pr-2">'''),
+            HTML('''</td><td>'''),
             'salary',
-            HTML('''</td><td class="pr-2">'''),
+            HTML('''</td><td>'''),
             'grade',
             HTML('''</td></tr>'''),
-            # Row(
-            #     Column('date_changed', css_class='col-sm-1'),
-            #     Column('department', css_class='col-sm-3'),
-            #     Column('title', css_class='col-sm-3'),
-            #     Column('salary', css_class='col-sm-2'),
-            #     Column('grade', css_class='col-md-2'),
-            #     css_class='form-row salary-title-formset'
-            # ),
         )

@@ -21,13 +21,21 @@
    vertical-align: middle;
 }
 
+.table .form-group{
+  margin-bottom: 0;
+}
+
+.formset-table{
+  margin-bottom: 0;
+}
+
+.formset-table td {
+  padding: 0 0 0 .5rem;
+}
+
 .footer {
   position: static;
   vertical-align: middle;
-}
-
-body {
-  /* overflow-y:hidden; */
 }
 
 .card-body {

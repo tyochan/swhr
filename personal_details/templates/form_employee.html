@@ -8,16 +8,16 @@
 <script src="{% static 'js/formset.js' %}"></script>
 <script type="text/javascript">
   $('.academic-record-formset').formset({
-    addText: 'Add New Record',
-    addCssClass: 'fas fa-plus-circle text-success add-er-btn',
+    addText: 'Add New',
+    addCssClass: 'fas fa-plus-circle text-success text-center add-er-btn pt-3',
     deleteText: '',
     deleteCssClass: 'minus-ar-btn',
     prefix: '{{ ARFormset.prefix }}',
     formCssClass: 'academic-record-formset',
   })
   $('.employment-history-formset').formset({
-    addText: 'Add New Record',
-    addCssClass: 'fas fa-plus-circle text-success add-er-btn',
+    addText: 'Add New',
+    addCssClass: 'fas fa-plus-circle text-success text-center add-er-btn pt-3',
     deleteText: '',
     deleteCssClass: 'minus-eh-btn',
     prefix: '{{ EHFormset.prefix }}',

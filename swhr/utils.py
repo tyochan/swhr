@@ -38,9 +38,10 @@ class Formset(LayoutObject):
         # closes form prematurely if this isn't explicitly stated
         if helper:
             helper.form_tag = False
-            if not formset.can_delete and 'AR' in self.formset_context_name or 'EH' in self.formset_context_name:
+            if not formset.can_delete and ('AR' in self.formset_context_name or 'EH' in self.formset_context_name):
                 print('%s not for delete.' % self.formset_context_name)
-                helper.layout[0].pop(-1)
+                # helper.layout[0].pop(-1)
+                helper.layout.pop(-2)
 
         context.update({'formset': formset, 'helper': helper})
         return render_to_string(self.template, context.flatten())
