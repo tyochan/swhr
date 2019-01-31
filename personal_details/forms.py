@@ -218,13 +218,14 @@ class UserUpdateForm(UserForm):
 
         if not self.user.is_superuser:
             self.helper.layout.insert(-1, HTML(
-                '<a href="{% url \'change_password\' %}" class="btn btn-outline-info" role="button">Change Password</a> '))
+                '<a href="{% url \'change_password\' %}" class="btn btn-outline-info mt-3 mb-3" role="button">Change Password</a> '))
             self.helper.layout.pop(-1)
 
-            for name in ['nick_name', 'bank', 'bank_acc', 'mobile',
-                         'email', 'address', 'emergency_contact_name',
-                         'emergency_contact_number', 'emergency_contact_relationship']:
-                self.fields[name].disabled = True
+            for name, field in self.fields.items():
+                if name not in ['nick_name', 'bank', 'bank_acc', 'mobile',
+                                'email', 'address', 'emergency_contact_name',
+                                'emergency_contact_number', 'emergency_contact_relationship']:
+                    field.disabled = True
 
             self.fields['last_date'].widget = HiddenInput()
             self.fields['is_active'].widget = HiddenInput()

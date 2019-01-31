@@ -19,7 +19,7 @@ function getEndDate() {
 // Toggle Day type
 function toggleDayType() {
   // If start_date == end_date
-  if (getStartDateText() === getEndDateText() && !$('#id_user').is(':disabled')) {
+  if (getStartDate() && getEndDate() && getStartDateText() === getEndDateText() && !$('#id_user').is(':disabled')) {
     enable($("#id_day_type"))
   } else {
     disable($("#id_day_type"))
@@ -37,8 +37,9 @@ $().ready(function() {
     // Set start date and end date
     $('#id_start_date').datepicker("setEndDate", getEndDate())
     $('#id_end_date').datepicker("setStartDate", getStartDate())
-    toggleDayType()
   }
+
+  toggleDayType()
 });
 
 // start_date change

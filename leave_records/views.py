@@ -1,5 +1,5 @@
 # Views
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 
 # Models
@@ -22,9 +22,9 @@ from swhr import utils
 
 
 class IndexView(LoginRequiredMixin, ListView):
-    template_name = 'leave_records.html'
     context_object_name = 'leaves'
     paginate_by = 13
+    template_name = 'leave_records.html'
 
     def get_queryset(self):
         order_by = self.request.GET.get('order_by', '-end_date')
@@ -41,8 +41,8 @@ class IndexView(LoginRequiredMixin, ListView):
                       (staff_id, name, type, day_type, status))
                 return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
                                                                Q(user__staff_id__contains=staff_id),
-                                                               Q(user__last_name__contains=name)
-                                                               | Q(user__first_name__contains=name) | Q(user__nick_name__contains=name),
+                                                               Q(user__last_name__contains=name) |
+                                                               Q(user__first_name__contains=name) | Q(user__nick_name__contains=name),
                                                                Q(type__contains=type),
                                                                Q(day_type__contains=day_type),
                                                                Q(status__contains=status),)
@@ -95,10 +95,11 @@ class LeaveCreateView(LoginRequiredMixin, CreateView):
 class LeaveUpdateView(PermissionRequiredMixin, UpdateView):
     form_class = forms.LeaveUpdateForm
     model = Leave
-    template_name = 'form_leave.html'
     permission_required = ('leave_records.change_leave')
+    template_name = 'form_leave.html'
 
     # Updating annual leave quota and leave status
+
     def form_valid(self, form):
         leave = Leave.objects.get(id=self.kwargs['pk'])
         if 'reject' not in self.request.POST:
@@ -111,6 +112,11 @@ class LeaveUpdateView(PermissionRequiredMixin, UpdateView):
         leave.save()
         return HttpResponseRedirect(self.get_success_url())
 
+    def get_form_kwargs(self):
+        kwargs = super(LeaveUpdateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
 
 class LeaveDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.LeaveDetailForm
@@ -120,6 +126,11 @@ class LeaveDetailView(UserPassesTestMixin, UpdateView):
     # Prevent any update
     def form_valid(self, form):
         return HttpResponseRedirect(self.get_success_url())
+
+    def get_form_kwargs(self):
+        kwargs = super(LeaveDetailView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def test_func(self):
         leave = self.get_object()

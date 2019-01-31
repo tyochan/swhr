@@ -114,6 +114,10 @@
     <img src="{% static 'img/logo_g.jpg' %}" id="logo">
     <div class="private">
       PRIVATE AND CONFIDENTIAL
+      {% if p.status == 'CC' %}
+      <br>
+      <span style="color: red;">THIS PAYMENT HAS BEEN CANCELLED</span>
+      {% endif %}
     </div>
     <div class="text-center payslip">
       {% if p.is_last %}

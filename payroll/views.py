@@ -89,11 +89,6 @@ class PaymentUpdateView(UserPassesTestMixin, UpdateView):
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
     # Updating payment status
     def form_valid(self, form):
         payment = Payment.objects.get(id=self.kwargs['pk'])
@@ -104,7 +99,7 @@ class PaymentUpdateView(UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         payment = self.get_object()
-        return (payment.user.id == self.request.user.id or self.request.user.is_superuser) and payment.status == 'PA'
+        return self.request.user.is_superuser and payment.status in 'PA'
 
 
 class PaymentDetailView(UserPassesTestMixin, UpdateView):
@@ -112,6 +107,11 @@ class PaymentDetailView(UserPassesTestMixin, UpdateView):
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def test_func(self):
         payment = self.get_object()
@@ -138,12 +138,11 @@ class LastPaymentCreateView(PermissionRequiredMixin, CreateView):
     permission_required = 'payroll.create_payment'
 
 
-class LastPaymentUpdateView(PermissionRequiredMixin, UpdateView):
+class LastPaymentUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.LastPaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
     success_url = reverse_lazy('payroll:index')
-    permission_required = 'payroll.change_payment'
 
     def get_context_data(self, **kwargs):
         context = super(LastPaymentUpdateView, self).get_context_data(**kwargs)
@@ -158,6 +157,10 @@ class LastPaymentUpdateView(PermissionRequiredMixin, UpdateView):
             payment.save()
         return HttpResponseRedirect(self.get_success_url())
 
+    def test_func(self):
+        payment = self.get_object()
+        return self.request.user.is_superuser and payment.status in 'PA'
+
 
 class LastPaymentDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.LastPaymentDetailForm
@@ -169,6 +172,11 @@ class LastPaymentDetailView(UserPassesTestMixin, UpdateView):
         context = super(LastPaymentDetailView, self).get_context_data(**kwargs)
         context['date_joined'] = context['object'].user.date_joined
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def test_func(self):
         payment = self.get_object()

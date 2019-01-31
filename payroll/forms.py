@@ -1,4 +1,4 @@
-from django.forms import ModelForm, ValidationError, DateInput, ModelChoiceField, HiddenInput, NumberInput
+from django.forms import ModelForm, ValidationError, DateInput, ModelChoiceField, HiddenInput, NumberInput, DateField
 
 # Models
 from .models import Payment
@@ -17,6 +17,8 @@ import calendar
 class PaymentForm(ModelForm):
     user = ModelChoiceField(label='Employee', queryset=User.objects.filter(
         is_staff=False, is_active=True))
+    date_joined = DateField(
+        disabled=True, required=False, widget=HiddenInput())
 
     class Meta:
         model = Payment
@@ -40,6 +42,7 @@ class PaymentForm(ModelForm):
             '''),
             Field('user', css_class='form-group col-md-12'),
             Row(
+                Column('date_joined', css_class='form-group col-md-6'),
                 Column(AppendedText('unused_leave_days', 'Days', readonly=True),
                        css_class='col-md-6'),
                 css_class='form-row'
@@ -124,67 +127,58 @@ class PaymentForm(ModelForm):
 
 
 class PaymentCreateForm(PaymentForm):
-    def __init__(self, *args, **kwargs):
-        super(PaymentCreateForm, self).__init__(*args, **kwargs)
-
     def clean(self):
         data = super().clean()
         # Check for overlapping payment
         payment = Payment.objects.filter(user=data['user'],
                                          period_start__lte=data['period_end'],
-                                         period_end__gte=data['period_start']).exclude(status="CC")
+                                         period_end__gte=data['period_start']
+                                         ).exclude(status="CC")
         if (payment):
             raise ValidationError(
-                'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
+                f'Payment overlapping with {payment[0]}')
         return data
 
 
-class PaymentDetailForm(PaymentForm):
+class PaymentUpdateForm(PaymentForm):
     def __init__(self, *args, **kwargs):
-        super(PaymentDetailForm, self).__init__(*args, **kwargs)
+        super(PaymentUpdateForm, self).__init__(*args, **kwargs)
         self.helper.layout.pop(-2)
-
+        self.helper.layout.insert(-1, HTML(
+            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
+        self.helper.layout.insert(-1, Submit('cancel',
+                                             'Cancel', css_class='btn-outline-danger'))
         for name, field in self.fields.items():
             field.disabled = True
 
 
-class PaymentUpdateForm(PaymentDetailForm):
+class PaymentDetailForm(PaymentUpdateForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
-        super(PaymentUpdateForm, self).__init__(*args, **kwargs)
-        self.helper.layout.insert(-1, HTML(
-            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
-        if self.user.is_superuser:
-            self.helper.layout.insert(-1, Submit('cancel',
-                                                 'Cancel', css_class='btn-outline-danger'))
+        super(PaymentDetailForm, self).__init__(*args, **kwargs)
+        if not self.user.is_superuser:
+            self.fields['user'].queryset = User.objects.filter(id=self.user.id)
+            self.fields['user'].initial = self.user.id
+            self.fields['user'].disabled = True
+
+        self.helper.layout.pop(-2)
 
 
 class LastPaymentForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(LastPaymentForm, self).__init__(*args, **kwargs)
-
-        self.helper.layout[2].insert(0, HTML("""
-                    <div class="formColumn form-group col-md-6">
-                        <label class="col-form-label">Date Joined</label>
-                        <input type="text" name="date_joined" class="dateinput form-control" id="id_date_joined" value="{{date_joined|date:"Y-m-d"}}" autocomplete="off" readonly>
-                    </div>
-                """),
-                                     ),
-
         self.fields['period_end'].widget = DateInput(
             attrs={'readonly': False})
         self.fields['unused_leave_days'].widget = NumberInput(
             attrs={'class': 'one-decimal'})
         self.fields['unused_leave_pay'].widget = NumberInput(
             attrs={'class': 'two-decimal'})
+        self.fields['date_joined'].widget = DateInput()
 
         self.fields['is_last'].initial = True
 
 
 class LastPaymentCreateForm(LastPaymentForm):
-    def __init__(self, *args, **kwargs):
-        super(LastPaymentCreateForm, self).__init__(*args, **kwargs)
-
     def clean(self):
         data = super().clean()
         # Check for overlapping payment
@@ -198,19 +192,25 @@ class LastPaymentCreateForm(LastPaymentForm):
         return data
 
 
-class LastPaymentDetailForm(LastPaymentForm):
-    def __init__(self, *args, **kwargs):
-        super(LastPaymentDetailForm, self).__init__(*args, **kwargs)
-        self.helper.layout.pop(-2)
-
-        for name, field in self.fields.items():
-            field.disabled = True
-
-
-class LastPaymentUpdateForm(LastPaymentDetailForm):
+class LastPaymentUpdateForm(LastPaymentForm):
     def __init__(self, *args, **kwargs):
         super(LastPaymentUpdateForm, self).__init__(*args, **kwargs)
+        self.helper.layout.pop(-2)  # Save btn
         self.helper.layout.insert(-1, HTML(
             '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
         self.helper.layout.insert(-1, Submit('cancel',
                                              'Cancel', css_class='btn-outline-danger'))
+        for name, field in self.fields.items():
+            field.disabled = True
+
+
+class LastPaymentDetailForm(LastPaymentUpdateForm):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
+        super(LastPaymentDetailForm, self).__init__(*args, **kwargs)
+        if not self.user.is_superuser:
+            self.fields['user'].queryset = User.objects.filter(id=self.user.id)
+            self.fields['user'].initial = self.user.id
+            self.fields['user'].disabled = True
+
+        self.helper.layout.pop(-2)

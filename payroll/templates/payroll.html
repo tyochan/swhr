@@ -83,21 +83,29 @@
       <tr>
         <td>{{p.period_start|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}}</td>
         <td>{{p.user.get_name}}</td>
-        <td>{{p.method}}</td>
+        <td>{{p.get_method_display}}</td>
         <td>{{p.net_pay}}</td>
         <td>{{p.get_status_display}}</td>
         <td>
           {% if p.is_last %}
+          {% if request.user.is_superuser %}
           {% if p.status == 'CC'%}
           <a href="{% url 'payroll:detail_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% else %}
           <a href="{% url 'payroll:update_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% endif %}
           {% else %}
+          <a href="{% url 'payroll:detail_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% endif %}
+          {% else %}
+          {% if request.user.is_superuser %}
           {% if p.status == 'CC'%}
           <a href="{% url 'payroll:detail_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% else %}
           <a href="{% url 'payroll:update_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% endif %}
+          {% else %}
+          <a href="{% url 'payroll:detail_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% endif %}
           {% endif %}
         </td>
