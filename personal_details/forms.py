@@ -159,8 +159,8 @@ class UserForm(ModelForm):
         self.fields['first_name'].required = True
         self.fields['last_name'].required = True
 
-        self.fields['first_name'].initial = 'User'
-        self.fields['last_name'].initial = 'Test'
+        # self.fields['first_name'].initial = 'User'
+        # self.fields['last_name'].initial = 'Test'
         self.fields['date_joined'].initial = datetime.date.today()
         self.fields['birth_date'].initial = datetime.date.today()
 
@@ -176,7 +176,6 @@ class UserForm(ModelForm):
 class UserCreateForm(UserForm):
     def __init__(self, *args, **kwargs):
         super(UserCreateForm, self).__init__(*args, **kwargs)
-
         self.fields['last_date'].disabled = True
         self.fields['is_active'].disabled = True
 
@@ -212,14 +211,10 @@ class UserUpdateForm(UserForm):
         self.helper.layout.insert(-2, Formset('STFormset', 'STFormsetHelper'))
         self.helper.layout.insert(-2,  HTML('''</tbody></table></div>'''))
 
-        # Should not be able to update any of these
-        for name in ['username', 'password', 'staff_id', 'slug']:
-            self.fields[name].disabled = True
-
         if not self.user.is_superuser:
             self.helper.layout.insert(-1, HTML(
-                '<a href="{% url \'change_password\' %}" class="btn btn-outline-info mt-3 mb-3" role="button">Change Password</a> '))
-            self.helper.layout.pop(-1)
+                '<a href="{% url \'change_password\' %}" class="btn btn-outline-info mt-2 mb-2" role="button">Change Password</a> '))
+            self.helper.layout.pop(-1)  # Pop back btn
 
             for name, field in self.fields.items():
                 if name not in ['nick_name', 'bank', 'bank_acc', 'mobile',
@@ -230,14 +225,16 @@ class UserUpdateForm(UserForm):
             self.fields['last_date'].widget = HiddenInput()
             self.fields['is_active'].widget = HiddenInput()
         else:
-            self.fields['date_joined'].disabled = True
+            # Should not be able to update any of these
+            for name in ['username', 'password', 'staff_id', 'slug', 'date_joined']:
+                self.fields[name].disabled = True
 
     def clean(self):
         data = super().clean()
         if not data['is_active'] and not data['last_date']:
             self.add_error(
-                last_date, 'This field is required if staff is inactive.')
-        return super().clean()
+                'last_date', 'This field is required if staff is inactive.')
+        return data
 
 
 class AcademicRecordForm(ModelForm):
@@ -245,12 +242,13 @@ class AcademicRecordForm(ModelForm):
         model = AcademicRecord
         fields = '__all__'
 
-    def clean_year_completed(self):
-        year_completed = self.cleaned_data['year_completed']
-        if year_completed != '' and int(year_completed) > datetime.date.today().year:
-            raise ValidationError(
-                'Completed year is larger than current year.')
-        return year_completed
+    # Not needed as choices will not have year > this year in normal condition
+    # def clean_year_completed(self):
+    #     year_completed = self.cleaned_data['year_completed']
+    #     if year_completed != '' and int(year_completed) > datetime.date.today().year:
+    #         raise ValidationError(
+    #             'Completed year is larger than current year.')
+    #     return year_completed
 
 
 class AcademicRecordFormsetHelper(FormHelper):

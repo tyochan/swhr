@@ -48,25 +48,20 @@ class PayrollFormTest(TestCase):
     def test_payment_form(self):
         form = PaymentForm()
         self.assertEquals(
-            type(form.fields['user'].widget).__name__, 'Select'
-        )
+            type(form.fields['user'].widget).__name__, 'Select')
 
         date = datetime.date.today()
         period_start = date.replace(day=1)
         period_end = date.replace(day=calendar.monthrange(
             period_start.year, period_start.month)[1])
         self.assertEquals(
-            form.fields['period_start'].initial, period_start
-        )
+            form.fields['period_start'].initial, period_start)
         self.assertEquals(
-            form.fields['period_end'].initial, period_end
-        )
+            form.fields['period_end'].initial, period_end)
         self.assertEquals(
-            form.fields['pay_date'].initial, date
-        )
+            form.fields['pay_date'].initial, date)
         self.assertTrue(
-            form.fields['status'].disabled
-        )
+            form.fields['status'].disabled)
 
     def test_payment_create_with_valid_data(self):
         form = PaymentCreateForm(
@@ -185,20 +180,13 @@ class PayrollFormTest(TestCase):
     def test_last_payment_form(self):
         form = LastPaymentForm()
         self.assertEquals(
-            type(form.fields['period_end'].widget).__name__, 'DateInput'
-        )
+            type(form.fields['period_end'].widget).__name__, 'DateInput')
         self.assertEquals(
-            type(
-                form.fields['unused_leave_days'].widget).__name__, 'NumberInput'
-        )
+            type(form.fields['unused_leave_days'].widget).__name__, 'NumberInput')
         self.assertEquals(
-            type(
-                form.fields['unused_leave_pay'].widget).__name__, 'NumberInput'
-        )
+            type(form.fields['unused_leave_pay'].widget).__name__, 'NumberInput')
         self.assertEquals(
-            type(
-                form.fields['date_joined'].widget).__name__, 'DateInput'
-        )
+            type(form.fields['date_joined'].widget).__name__, 'DateInput')
         self.assertTrue(
             'one-decimal' in form.fields['unused_leave_days'].widget.attrs['class'])
         self.assertTrue(
