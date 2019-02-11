@@ -22,7 +22,7 @@ from swhr import utils
 
 
 class IndexView(LoginRequiredMixin, ListView):
-    context_object_name = 'leaves'
+    context_object_name = 'obj_list'
     paginate_by = 13
     template_name = 'leave_records.html'
 
@@ -37,8 +37,8 @@ class IndexView(LoginRequiredMixin, ListView):
             status = self.request.GET.get('status', '')
 
             if bool(staff_id + name + type + day_type + status):
-                print('Leave Filtering: %s %s %s %s %s' %
-                      (staff_id, name, type, day_type, status))
+                # print('Leave Filtering: %s %s %s %s %s' %
+                #       (staff_id, name, type, day_type, status))
                 return Leave.objects.order_by(order_by).filter(Q(user__is_active=True),
                                                                Q(user__staff_id__contains=staff_id),
                                                                Q(user__last_name__contains=name) |
@@ -69,7 +69,8 @@ class IndexView(LoginRequiredMixin, ListView):
         context['day_type_options'] = dict((key, val)
                                            for key, val in choices.LEAVE_DAY_TYPE)
         context['filter'] = 'staff_id=%s&name=%s&type=%s&day_type=%s&status=%s' % (
-            context['staff_id'], context['name'], context['type'], context['day_type'], context['status'])
+            context['staff_id'], context['name'], context['type'],
+            context['day_type'], context['status'])
         return context
 
 
@@ -92,10 +93,9 @@ class LeaveCreateView(LoginRequiredMixin, CreateView):
         return kwargs
 
 
-class LeaveUpdateView(PermissionRequiredMixin, UpdateView):
+class LeaveUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.LeaveUpdateForm
     model = Leave
-    permission_required = ('leave_records.change_leave')
     template_name = 'form_leave.html'
 
     # Updating annual leave quota and leave status
@@ -116,6 +116,10 @@ class LeaveUpdateView(PermissionRequiredMixin, UpdateView):
         kwargs = super(LeaveUpdateView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+    def test_func(self):  # Only superuser can access
+        leave = self.get_object()
+        return self.request.user.is_superuser and leave.status == 'PD'
 
 
 class LeaveDetailView(UserPassesTestMixin, UpdateView):

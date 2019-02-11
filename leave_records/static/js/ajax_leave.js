@@ -1,6 +1,6 @@
 function leave_calculation() {
   $.ajax({
-    url: "ajax/leave_calculation",
+    url: "../ajax/leave_calculation",
     data: {
       'start_date': getStartDateText(),
       'end_date': getEndDateText(),

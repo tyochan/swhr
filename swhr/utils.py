@@ -38,7 +38,7 @@ class Formset(LayoutObject):
         # closes form prematurely if this isn't explicitly stated
         if helper:
             helper.form_tag = False
-            if not formset.can_delete and ('AR' in self.formset_context_name or 'EH' in self.formset_context_name):
+            if not formset.can_delete and (self.formset_context_name in 'AR, EH'):
                 print('%s not for delete.' % self.formset_context_name)
                 helper.layout.pop(-2)  # Pop delete field
 
@@ -56,7 +56,7 @@ def period_spend_days(start_date, end_date):
     # Weekends
     temp = start_date
     while temp < end_date + datetime.timedelta(days=1):
-        if temp.isoweekday() == 6 or temp.isoweekday() == 7:
+        if 5 < temp.isoweekday() < 8:  # Saturday Sunday
             spend -= 1
         temp += datetime.timedelta(days=1)
 

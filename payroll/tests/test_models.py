@@ -2,15 +2,17 @@ from django.test import TestCase
 from personal_details.models import User
 from payroll.models import Payment
 
+import datetime
 # Create your tests here.
 first_name = 'First'
 last_name = 'Last'
 staff_id = '234561'
-date = '2019-1-1'
 salary = 20000
 string = 'Testing'
-date_two = '2019-4-1'
-date_three = '2019-6-1'
+date = datetime.datetime.strptime('2019-1-1', '%Y-%m-%d').date()
+date_two = datetime.datetime.strptime('2019-4-24', '%Y-%m-%d').date()
+date_three = datetime.datetime.strptime('2019-6-24', '%Y-%m-%d').date()
+date_joined = datetime.datetime.strptime('2019-2-1-+0800', '%Y-%m-%d-%z')
 
 
 class PayrollModelTestClass(TestCase):
@@ -22,6 +24,7 @@ class PayrollModelTestClass(TestCase):
             staff_id=staff_id,
             username=staff_id,
             password=staff_id,
+            date_joined=date_joined,
         )
         # user join == period_start
         Payment.objects.create(

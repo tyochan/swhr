@@ -24,7 +24,7 @@ from swhr import utils
 
 class IndexView(LoginRequiredMixin, ListView):
     template_name = 'personal_details.html'
-    context_object_name = 'users'
+    context_object_name = 'obj_list'
     paginate_by = 13
 
     def get(self, request, *args, **kwargs):
@@ -240,13 +240,17 @@ class UserUpdateView(UserPassesTestMixin, UpdateView):
             user = self.get_object()
             context['ARFormset'] = self.AcademicRecordInlineFormset(
                 instance=user,
-                prefix='academicRecord'
+                prefix='academicRecord',
+                queryset=AcademicRecord.objects.filter(
+                    user=user).order_by('date_start')
             )
             context['ARFormsetHelper'] = forms.AcademicRecordFormsetHelper()
 
             context['EHFormset'] = self.EmploymentHistoryInlineFormset(
                 instance=user,
-                prefix='employmentHistory'
+                prefix='employmentHistory',
+                queryset=EmploymentHistory.objects.filter(
+                    user=user).order_by('date_start')
             )
             context['EHFormsetHelper'] = forms.EmploymentHistoryFormsetHelper()
             context['STFormset'] = self.SalaryTitleRecordInlineFormset(

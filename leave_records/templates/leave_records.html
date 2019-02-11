@@ -85,18 +85,18 @@
       </tr>
     </thead>
     <tbody>
-      {% for l in leaves %}
+      {% for obj in obj_list %}
       <tr>
-        <td>{{l.start_date|date:"d/m/Y"}} - {{l.end_date|date:"d/m/Y"}}</td>
-        <td>{{l.user.get_name}}</td>
-        <td>{{l.get_type_display}}</td>
-        <td>{{l.get_day_type_display}}</td>
-        <td>{{l.get_status_display}}</td>
+        <td>{{obj.start_date|date:"d/m/Y"}} - {{obj.end_date|date:"d/m/Y"}}</td>
+        <td>{{obj.user.get_name}}</td>
+        <td>{{obj.get_type_display}}</td>
+        <td>{{obj.get_day_type_display}}</td>
+        <td>{{obj.get_status_display}}</td>
         <td>
-          {% if request.user.is_superuser and l.status == 'PD' %}
-          <a href="{% url 'leave_records:update_leave' l.pk %}" class="btn btn-info" role="button">Amend Status</a>
+          {% if request.user.is_superuser and obj.status == 'PD' %}
+          <a href="{% url 'leave_records:update_leave' obj.pk %}" class="btn btn-info" role="button">Amend Status</a>
           {% else %}
-          <a href="{% url 'leave_records:detail_leave' l.pk %}" class="btn btn-success" role="button">Check Record</a>
+          <a href="{% url 'leave_records:detail_leave' obj.pk %}" class="btn btn-success" role="button">Check Record</a>
           {% endif %}
         </td>
       </tr>

@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('change_password', views.CustomPasswordChangeView.as_view(),
+    path('change_password/', views.CustomPasswordChangeView.as_view(),
          name='change_password'),
 
     path('personal_details/', include('personal_details.urls',

@@ -70,52 +70,56 @@
           <a href="?order_by=status&{{filter}}" class="fas fa-caret-up"></a>
           <a href="?order_by=-status&{{filter}}" class="fas fa-caret-down"></a>
         </th>
-        <th>Action</th>
         {% if request.user.is_superuser %}
-        <th>
-          PDF
-        </th>
+        <th>Action</th>
         {% endif %}
+        <th>PDF</th>
       </tr>
     </thead>
     <tbody>
-      {% for p in payments %}
+      {% for obj in obj_list %}
       <tr>
-        <td>{{p.period_start|date:"d/m/Y"}} - {{p.period_end|date:"d/m/Y"}}</td>
-        <td>{{p.user.get_name}}</td>
-        <td>{{p.get_method_display}}</td>
-        <td>{{p.net_pay}}</td>
-        <td>{{p.get_status_display}}</td>
+        <td>{{obj.period_start|date:"d/m/Y"}} - {{obj.period_end|date:"d/m/Y"}}</td>
+        <td>{{obj.user.get_name}}</td>
+        <td>{{obj.get_method_display}}</td>
+        <td>{{obj.net_pay}}</td>
+        <td>{{obj.get_status_display}}</td>
         <td>
-          {% if p.is_last %}
           {% if request.user.is_superuser %}
-          {% if p.status == 'CC'%}
-          <a href="{% url 'payroll:detail_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% if obj.is_last %}
+          {% if obj.status == 'CC'%}
+          <a href="{% url 'payroll:detail_last_payment' obj.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% else %}
-          <a href="{% url 'payroll:update_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          <a href="{% url 'payroll:update_last_payment' obj.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% endif %}
           {% else %}
-          <a href="{% url 'payroll:detail_last_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% if obj.status == 'CC'%}
+          <a href="{% url 'payroll:detail_payment' obj.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% else %}
+          <a href="{% url 'payroll:update_payment' obj.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% endif %}
           {% endif %}
           {% else %}
-          {% if request.user.is_superuser %}
-          {% if p.status == 'CC'%}
-          <a href="{% url 'payroll:detail_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          {% if obj.status != 'CC'%}
+          {% if obj.is_last %}
+          <a href="{% url 'payroll:last_payslip_pdf' obj.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
           {% else %}
-          <a href="{% url 'payroll:update_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
+          <a href="{% url 'payroll:payslip_pdf' obj.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
           {% endif %}
-          {% else %}
-          <a href="{% url 'payroll:detail_payment' p.pk %}" class="btn btn-success" role="button">View Payment</a>
           {% endif %}
           {% endif %}
         </td>
+        {% if request.user.is_superuser %}
         <td>
-          {% if p.is_last %}
-          <a href="{% url 'payroll:last_payslip_pdf' p.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
+          {% if obj.status != 'CC'%}
+          {% if obj.is_last %}
+          <a href="{% url 'payroll:last_payslip_pdf' obj.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
           {% else %}
-          <a href="{% url 'payroll:payslip_pdf' p.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
+          <a href="{% url 'payroll:payslip_pdf' obj.pk %}" target="_blank" class="btn btn-info" role="button">Export PDF</a>
+          {% endif %}
           {% endif %}
         </td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

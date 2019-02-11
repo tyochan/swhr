@@ -12,7 +12,7 @@ import django.utils.timezone
 def generate_random_id():
     random_id = str(uuid.uuid4().int)[:6]
     while User.objects.filter(id=random_id).count():
-        random_id = str(uuid.uuid4().int)[:6]
+        random_id = str(uuid.uuid4().int)[:6]  # pragma: no cover
     return random_id
 
 # Create your models here.

@@ -4,6 +4,7 @@ from personal_details.models import User
 
 # Utils
 from . import choices
+import datetime
 
 
 class Payment(models.Model):
@@ -96,8 +97,15 @@ class Payment(models.Model):
 
     @property
     def third_month(self):
-        return 60 <= (self.period_end - self.user.date_joined.date()).days + 1 < 90
+        date_joined = (self.user.date_joined
+                       + datetime.timedelta(days=1)).date()
+        # print(
+        #     f'{self.period_end} to {date_joined} as {(self.period_end - date_joined).days}')
+        return 60 <= (self.period_end - date_joined).days < 90
 
     @property
     def start_late(self):
-        return self.period_start < self.user.date_joined.replace(tzinfo=None).date()
+        date_joined = (self.user.date_joined
+                       + datetime.timedelta(days=1)).date()
+        # print(f'{self.period_start} to {date_joined}')
+        return self.period_start < date_joined

@@ -1,72 +1,85 @@
-from django.test import TestCase, Client, RequestFactory
+from django.test import TestCase
 from personal_details.models import User
-from django.contrib.auth.models import AnonymousUser
-from swhr.views import CustomLoginView, CustomPasswordChangeView
 from django.urls import reverse_lazy
-from django.contrib.auth import views as auth_views
-
 
 import datetime
 
-first_name = 'First'
-last_name = 'Last'
-staff_id = '234561'
-staff_id_two = '456789'
-date = datetime.datetime.strptime('2019-1-3', '%Y-%m-%d')
-date_two = datetime.datetime.strptime('2019-3-3', '%Y-%m-%d')
-today = datetime.date.today()
-salary = 20000
 
-
-class MainViewTest(TestCase):
+class LoginViewTest(TestCase):
     @classmethod
     def setUpTestData(self):
-        self.user = User.objects.create(
-            first_name=first_name, last_name=last_name,
-            staff_id=staff_id, slug=staff_id,
-            username=staff_id,
-        )
-        self.user.set_password(staff_id)
-        self.superuser = User.objects.create(
-            first_name=first_name, last_name=last_name,
-            staff_id=staff_id_two, slug=staff_id,
-            username=staff_id_two,
-            is_superuser=True,
-        )
-        self.superuser.set_password(staff_id_two)
+        self.test_user1 = User.objects.create_superuser(
+            username='testuser1', password='1X<ISRUkw+tuK', email='admin@81.com')
+        self.test_user2 = User.objects.create_user(
+            username='testuser2', password='1X<ISRUkw+tuK')
 
-    def setUp(self):
-        # Every test needs access to the request factory.
-        self.factory = RequestFactory()
-        self.client = Client()
+        self.test_user2.slug = self.test_user2.staff_id
+        self.test_user1.save()
+        self.test_user2.save()
 
-    # def test_login_view(self):
-        # request = self.factory.get('/login/')
-        # request.user = AnonymousUser()
-        #
-        # response = CustomLoginView.as_view()(request)
-        # self.assertEqual(response.status_code, 200)
-
-    def test_get_login_page(self):
-        response = self.client.get(reverse_lazy('login'))
+    def test_url_exists_at_desired_location_and_uses_correct_template(self):
+        response = self.client.get('/login/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'registration/login.html')
 
-    # Unknown error with redirection
-    # def test_login_with_valid_user(self):
-    #     response = self.client.post(
-    #         reverse_lazy('login'),
-    #         {'username': staff_id, 'password': staff_id},
-    #     )
-    #     self.assertEqual(response.status_code, 302)
-    #     self.assertTemplateUsed(response, 'leave_records.html')
+    def test_url_accessible_by_name_and_uses_correct_template(self):
+        response = self.client.get(reverse_lazy('login'))
+        self.assertEqual(response.status_code, 200)
 
-    def test_get_change_password_page(self):
-        print(self.client.login(username=self.user.username,
-                                password=self.user.password))
-        # print(self.client.force_login(self.user))
+    def test_login_success(self):
+        response = self.client.post(
+            '/login/',
+            {
+                'username': 'testuser1',
+                'password': '1X<ISRUkw+tuK',
+            }
+        )
+        self.assertRedirects(response, reverse_lazy('leave_records:index'))
+
+    def test_login_fail(self):
+        response = self.client.post(
+            '/login/',
+            {
+                'username': 'testuser1',
+                'password': '1X<ISRUkw+tuL',
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'registration/login.html')
+
+    def test_redirects_if_logged_in(self):
+        self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
+        response = self.client.get('/login/')
+        self.assertRedirects(response, reverse_lazy('leave_records:index'))
+
+    ### PasswordChangeViewTest ###
+    def test_url_exists_at_desired_location_and_uses_correct_template(self):
+        self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
+        response = self.client.get('/change_password/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'form_change_password.html')
+
+    def test_url_accessible_by_name_and_uses_correct_template(self):
+        self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
         response = self.client.get(reverse_lazy('change_password'))
+        self.assertEqual(response.status_code, 200)
 
-        # self.assertEqual(response.status_code, 200)
-        # self.assertTemplateUsed(
-        #     response, 'form_change_password.html')
+    def test_redirects_if_not_logged_in(self):
+        response = self.client.get('/change_password/')
+        self.assertRedirects(response, '/login/?next=/change_password/')
+
+    def test_redirects_after_password_change(self):
+        self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
+        response = self.client.post(
+            '/change_password/',
+            {
+                'old_password': '1X<ISRUkw+tuK',
+                'new_password1': '1X<ISRUkw+tuH',
+                'new_password2': '1X<ISRUkw+tuH'
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse_lazy('personal_details:update_user',
+                         kwargs={'slug': self.test_user2.slug})
+        )

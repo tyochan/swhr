@@ -65,21 +65,21 @@
 
     </thead>
     <tbody>
-      {% for u in users %}
+      {% for obj in obj_list %}
       <tr>
-        <td>{{u.staff_id}}</td>
-        <td>{{u.get_name}}</td>
-        <td>{{u.date_joined|date:"d/m/Y"}}</td>
-        <td>{{u.annual_leave}}</td>
+        <td>{{obj.staff_id}}</td>
+        <td>{{obj.get_name}}</td>
+        <td>{{obj.date_joined|date:"d/m/Y"}}</td>
+        <td>{{obj.annual_leave}}</td>
         <td>
-          {% if u.is_active %}
+          {% if obj.is_active %}
           Active
           {% else %}
           Inactive
           {% endif %}
         </td>
         <td>
-          <a href="{% url 'personal_details:update_user' u.staff_id %}" class="btn btn-info" role="button">Edit Details</a>
+          <a href="{% url 'personal_details:update_user' obj.staff_id %}" class="btn btn-info" role="button">Edit Details</a>
         </td>
       </tr>
       {% endfor %}

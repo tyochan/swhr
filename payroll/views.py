@@ -28,7 +28,7 @@ from swhr import utils
 
 class IndexView(LoginRequiredMixin, ListView):
     template_name = 'payroll.html'
-    context_object_name = 'payments'
+    context_object_name = 'obj_list'
     paginate_by = 13
 
     def get_queryset(self):
