@@ -41,13 +41,13 @@ class IndexView(LoginRequiredMixin, ListView):
             is_last = bool(self.request.GET.get('is_last', ''))
 
             if bool(staff_id + name + status + self.request.GET.get('is_last', '')):
-
-                print('Payment Filtering: %s %s %s %s' %
-                      (staff_id, name, status, is_last))
+                # print('Payment Filtering: %s %s %s %s' %
+                #       (staff_id, name, status, is_last))
 
                 return Payment.objects.order_by(order_by).filter(Q(user__staff_id__contains=staff_id),
-                                                                 Q(user__last_name__contains=name)
-                                                                 | Q(user__first_name__contains=name) | Q(user__nick_name__contains=name),
+                                                                 Q(user__last_name__contains=name) |
+                                                                 Q(user__first_name__contains=name) |
+                                                                 Q(user__nick_name__contains=name),
                                                                  Q(status__contains=status),
                                                                  Q(is_last=is_last),)
             else:
@@ -75,19 +75,19 @@ class IndexView(LoginRequiredMixin, ListView):
         return context
 
 
-class PaymentCreateView(PermissionRequiredMixin, CreateView):
+class PaymentCreateView(UserPassesTestMixin, CreateView):
     form_class = forms.PaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
-    success_url = reverse_lazy('payroll:index')
-    permission_required = 'payroll.create_payment'
+
+    def test_func(self):
+        return self.request.user.is_superuser
 
 
 class PaymentUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.PaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
-    success_url = reverse_lazy('payroll:index')
 
     # Updating payment status
     def form_valid(self, form):
@@ -95,7 +95,7 @@ class PaymentUpdateView(UserPassesTestMixin, UpdateView):
         if 'cancel' in self.request.POST:
             payment.status = 'CC'
             payment.save()
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(Payment.get_absolute_url(self))
 
     def test_func(self):
         payment = self.get_object()
@@ -106,7 +106,6 @@ class PaymentDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.PaymentDetailForm
     model = Payment
     template_name = 'form_payment.html'
-    success_url = reverse_lazy('payroll:index')
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -115,7 +114,8 @@ class PaymentDetailView(UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         payment = self.get_object()
-        return payment.user.id == self.request.user.id or self.request.user.is_superuser
+        # payment.user.id == self.request.user.id or
+        return self.request.user.is_superuser
 
 
 class PaymentPDFView(UserPassesTestMixin, DetailView, WeasyTemplateResponseMixin):
@@ -127,22 +127,24 @@ class PaymentPDFView(UserPassesTestMixin, DetailView, WeasyTemplateResponseMixin
 
     def test_func(self):
         payment = self.get_object()
-        return payment.user.id == self.request.user.id or self.request.user.is_superuser
+        return (payment.user.id == self.request.user.id or self.request.user.is_superuser) and payment.status in 'PA'
 
 
-class LastPaymentCreateView(PermissionRequiredMixin, CreateView):
+class LastPaymentCreateView(UserPassesTestMixin, CreateView):
     form_class = forms.LastPaymentCreateForm
     model = Payment
     template_name = 'form_payment.html'
-    success_url = reverse_lazy('payroll:index')
+    # success_url = reverse_lazy('payroll:index')
     permission_required = 'payroll.create_payment'
+
+    def test_func(self):
+        return self.request.user.is_superuser
 
 
 class LastPaymentUpdateView(UserPassesTestMixin, UpdateView):
     form_class = forms.LastPaymentUpdateForm
     model = Payment
     template_name = 'form_payment.html'
-    success_url = reverse_lazy('payroll:index')
 
     def get_context_data(self, **kwargs):
         context = super(LastPaymentUpdateView, self).get_context_data(**kwargs)
@@ -150,12 +152,12 @@ class LastPaymentUpdateView(UserPassesTestMixin, UpdateView):
         return context
 
     # Updating payment status
-    def form_valid(self, form):
+    def form_valid(self, form):  # pragma: no cover tested in line 596 test_views.py
         payment = Payment.objects.get(id=self.kwargs['pk'])
         if 'cancel' in self.request.POST:
             payment.status = 'CC'
             payment.save()
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(Payment.get_absolute_url(self))
 
     def test_func(self):
         payment = self.get_object()
@@ -166,7 +168,6 @@ class LastPaymentDetailView(UserPassesTestMixin, UpdateView):
     form_class = forms.LastPaymentDetailForm
     model = Payment
     template_name = 'form_payment.html'
-    success_url = reverse_lazy('payroll:index')
 
     def get_context_data(self, **kwargs):
         context = super(LastPaymentDetailView, self).get_context_data(**kwargs)
@@ -203,31 +204,30 @@ def limit_period(start_date, end_date, period_start, period_end):
     return start_date, end_date
 
 
-def get_mpf(salary, days_passed):
+def get_mpf(salary, days_passed, user, period_start):
     mpf_employer, mpf_employee = 0, 0
 
     # less than 3 months no mpf
     if days_passed < 60:
         pass
-    else:
-        # Employer MPF cumulative for third month
-        if 60 <= days_passed < 90:
-            payments = Payment.objects.all().filter(user=user,
-                                                    period_end__lte=period_start)
+    else:  # More than 3 months
+        if 60 <= days_passed < 90:  # Employer MPF cumulative for third month
+            payments = Payment.objects.filter(user=user,
+                                              period_end__lte=period_start)
             for p in payments:
-                if p.net_pay > 30000:
+                if p.net_pay > 30000:  # Use net pay as salary bcz first two month has no mpf
                     mpf_employer += 1500
                 else:
                     mpf_employer += p.net_pay * 0.05
 
         if salary > 30000:
-            mpf_employee = 1500
-            mpf_employer = 1500
+            mpf_employee += 1500
+            mpf_employer += 1500
         elif 7100 <= salary <= 30000:
-            mpf_employee = salary * 0.05
-            mpf_employer = salary * 0.05
+            mpf_employee += salary * 0.05
+            mpf_employer += salary * 0.05
         else:
-            mpf_employer = salary * 0.05
+            mpf_employer += salary * 0.05
 
     return mpf_employer, mpf_employee
 
@@ -268,7 +268,8 @@ def payment_calculation(request):
     no_pay_leave = user.salary * (period_max - period_work) / period_max
 
     # Calculate net pay and mpf
-    mpf_employer, mpf_employee = get_mpf(salary, days_passed)
+    mpf_employer, mpf_employee = get_mpf(
+        salary, days_passed, user, period_start)
 
     # Unused Annual Leaves if last payment
     unused_leave_pay, unused_leave_days = 0, 0

@@ -1,6 +1,6 @@
 function payment_calculation() {
   $.ajax({
-    url: "ajax/payment_calculation",
+    url: "../ajax/payment_calculation",
     data: {
       'user_id': $('#id_user').val(),
       'period_start': getStartDateText(),

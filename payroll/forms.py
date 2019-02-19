@@ -133,10 +133,10 @@ class PaymentCreateForm(PaymentForm):
         payment = Payment.objects.filter(user=data['user'],
                                          period_start__lte=data['period_end'],
                                          period_end__gte=data['period_start']
-                                         ).exclude(status="CC")
+                                         ).exclude(status="CC").first()
         if (payment):
             raise ValidationError(
-                f'Payment overlapping with {payment[0]}')
+                f'Payment overlapping with {payment}')
         return data
 
 
@@ -144,8 +144,8 @@ class PaymentUpdateForm(PaymentForm):
     def __init__(self, *args, **kwargs):
         super(PaymentUpdateForm, self).__init__(*args, **kwargs)
         self.helper.layout.pop(-2)
-        self.helper.layout.insert(-1, HTML(
-            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
+        # self.helper.layout.insert(-1, HTML(
+        #     '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
         self.helper.layout.insert(-1, Submit('cancel',
                                              'Cancel', css_class='btn-outline-danger'))
         for name, field in self.fields.items():
@@ -188,7 +188,6 @@ class LastPaymentCreateForm(LastPaymentForm):
         if (payment):
             raise ValidationError(
                 'Payment overlapping with [%(payment)s]', params={'payment': payment[0]})
-
         return data
 
 
@@ -196,8 +195,8 @@ class LastPaymentUpdateForm(LastPaymentForm):
     def __init__(self, *args, **kwargs):
         super(LastPaymentUpdateForm, self).__init__(*args, **kwargs)
         self.helper.layout.pop(-2)  # Save btn
-        self.helper.layout.insert(-1, HTML(
-            '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
+        # self.helper.layout.insert(-1, HTML(
+        #     '<a target="_blank" class="btn btn-outline-info" role="button" id="id_export_pdf">Export PDF</a> '))
         self.helper.layout.insert(-1, Submit('cancel',
                                              'Cancel', css_class='btn-outline-danger'))
         for name, field in self.fields.items():

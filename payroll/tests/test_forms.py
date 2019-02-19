@@ -125,11 +125,11 @@ class PayrollFormTest(TestCase):
                 all_disabled = False
         self.assertTrue(all_disabled)
 
-        save_btn, cancel_btn, export_btn = False, False, False
+        save_btn, cancel_btn = False, False  # , export_btn, False
         for obj in form.helper.layout:
-            if hasattr(obj, 'html'):
-                if 'id="id_export_pdf"' in obj.html:
-                    export_btn = True
+            # if hasattr(obj, 'html'):
+            #     if 'id="id_export_pdf"' in obj.html:
+            #         export_btn = True
             if hasattr(obj, 'name'):
                 if 'save' in obj.name:
                     save_btn = True
@@ -138,7 +138,7 @@ class PayrollFormTest(TestCase):
 
         self.assertFalse(save_btn)
         self.assertTrue(cancel_btn)
-        self.assertTrue(export_btn)
+        # self.assertTrue(export_btn)
 
     def test_payment_detail_form_for_normal_user(self):
         form = PaymentDetailForm(
@@ -158,11 +158,12 @@ class PayrollFormTest(TestCase):
                 'net_pay': salary * 0.95,
             }
         )
-        save_btn, cancel_btn, export_btn = False, False, False
+        # , export_btn, False
+        save_btn, cancel_btn = False, False
         for obj in form.helper.layout:
-            if hasattr(obj, 'html'):
-                if 'id="id_export_pdf"' in obj.html:
-                    export_btn = True
+            # if hasattr(obj, 'html'):
+            #     if 'id="id_export_pdf"' in obj.html:
+            #         export_btn = True
             if hasattr(obj, 'name'):
                 if 'save' in obj.name:
                     save_btn = True
@@ -171,7 +172,7 @@ class PayrollFormTest(TestCase):
 
         self.assertFalse(save_btn)
         self.assertFalse(cancel_btn)
-        self.assertTrue(export_btn)
+        # self.assertTrue(export_btn)
 
         self.assertEquals(form.user, self.user)
         self.assertEquals(form.fields['user'].initial, self.user.id)
@@ -248,11 +249,12 @@ class PayrollFormTest(TestCase):
                 'net_pay': salary * 0.95,
             }
         )
-        save_btn, cancel_btn, export_btn = False, False, False
+        # , export_btn, False
+        save_btn, cancel_btn = False, False
         for obj in form.helper.layout:
-            if hasattr(obj, 'html'):
-                if 'id="id_export_pdf"' in obj.html:
-                    export_btn = True
+            # if hasattr(obj, 'html'):
+            #     if 'id="id_export_pdf"' in obj.html:
+            #         export_btn = True
             if hasattr(obj, 'name'):
                 if 'save' in obj.name:
                     save_btn = True
@@ -261,7 +263,7 @@ class PayrollFormTest(TestCase):
 
         self.assertFalse(save_btn)
         self.assertTrue(cancel_btn)
-        self.assertTrue(export_btn)
+        # self.assertTrue(export_btn)
 
         all_disabled = True
         for name, field in form.fields.items():
@@ -287,11 +289,12 @@ class PayrollFormTest(TestCase):
                 'net_pay': salary * 0.95,
             }
         )
-        save_btn, cancel_btn, export_btn = False, False, False
+        # , export_btn, False
+        save_btn, cancel_btn = False, False
         for obj in form.helper.layout:
-            if hasattr(obj, 'html'):
-                if 'id="id_export_pdf"' in obj.html:
-                    export_btn = True
+            # if hasattr(obj, 'html'):
+            #     if 'id="id_export_pdf"' in obj.html:
+            #         export_btn = True
             if hasattr(obj, 'name'):
                 if 'save' in obj.name:
                     save_btn = True
@@ -300,7 +303,7 @@ class PayrollFormTest(TestCase):
 
         self.assertFalse(save_btn)
         self.assertFalse(cancel_btn)
-        self.assertTrue(export_btn)
+        # self.assertTrue(export_btn)
 
         all_disabled = True
         for name, field in form.fields.items():

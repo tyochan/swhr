@@ -6,6 +6,7 @@ from leave_records.models import Leave
 from leave_records import choices
 
 import datetime
+import json
 
 
 class LeaveListViewTest(TestCase):
@@ -25,7 +26,6 @@ class LeaveListViewTest(TestCase):
         self.test_user2.save()
         self.test_user3.save()
 
-        # Create 30 Leave objects
         number_of_leaves = 8
         date = datetime.datetime.strptime('2019-1-31', '%Y-%m-%d').date()
         for obj in range(number_of_leaves):
@@ -182,7 +182,7 @@ class LeaveListViewTest(TestCase):
             self.assertTrue(obj.user.username == 'testuser2')
 
 
-class LeaveCreateViewTest(TestCase):
+class LeaveModifyViewTest(TestCase):
     @classmethod
     def setUpTestData(self):
         # Create two users
@@ -221,22 +221,23 @@ class LeaveCreateViewTest(TestCase):
                 status=status,
             )
 
-    def test_redirects_if_not_logged_in(self):
+    ### LeaveCreateViewTest ###
+    def test_redirects_if_not_logged_in_LeaveCreateViewTest(self):
         response = self.client.get(reverse_lazy('leave_records:create_leave'))
         self.assertRedirects(response, '/login/?next=/leave_records/create/')
 
-    def test_logged_in_url_exists_at_desired_location(self):
+    def test_logged_in_url_exists_at_desired_location_LeaveCreateViewTest(self):
         self.client.login(username='testuser1', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/create/')
         self.assertEqual(response.status_code, 200)
 
-    def test_logged_in_url_accessible_by_name_and_uses_correct_template(self):
+    def test_logged_in_url_accessible_by_name_and_uses_correct_template_LeaveCreateViewTest(self):
         self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
         response = self.client.get(reverse_lazy('leave_records:create_leave'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'form_leave.html')
 
-    def test_form_has_kwargs_user(self):
+    def test_form_has_kwargs_user_LeaveCreateViewTest(self):
         self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
         response = self.client.get(reverse_lazy('leave_records:create_leave'))
         self.assertEquals(response.context['form'].user, self.test_user2)
@@ -271,7 +272,7 @@ class LeaveCreateViewTest(TestCase):
                 'type': 'AL',
             })
         # Call object again due to change
-        self.assertEquals(response.status_code, 302)
+        reverse_lazy('leave_records:index')
         annual_leave = User.objects.get(username='testuser3').annual_leave
         self.assertEquals(annual_leave, 14.5)
 
@@ -328,28 +329,28 @@ class LeaveCreateViewTest(TestCase):
         self.assertFormError(response, 'form', None, msg)
 
     ### LeaveUpdateViewTest ###
-    def test_redirects_if_not_logged_in(self):
+    def test_redirects_if_not_logged_in_LeaveUpdateViewTest(self):
         response = self.client.get('/leave_records/update/1/')
         self.assertRedirects(response, '/login/?next=/leave_records/update/1/')
 
-    def test_forbidden_if_not_superuser(self):
+    def test_forbidden_if_not_superuser_LeaveUpdateViewTest(self):
         self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/update/1/')
         self.assertEqual(response.status_code, 403)
 
-    def test_logged_in_url_exists_at_desired_location(self):
+    def test_logged_in_url_exists_at_desired_location_LeaveUpdateViewTest(self):
         self.client.login(username='testuser1', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/update/1/')
         self.assertEqual(response.status_code, 200)
 
-    def test_logged_in_url_accessible_by_name_and_uses_correct_template(self):
+    def test_logged_in_url_accessible_by_name_and_uses_correct_template_LeaveUpdateViewTest(self):
         self.client.login(username='testuser1', password='1X<ISRUkw+tuK')
         response = self.client.get(reverse_lazy('leave_records:update_leave',
                                                 kwargs={'pk': 1}))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'form_leave.html')
 
-    def test_form_has_kwargs_user(self):
+    def test_form_has_kwargs_user_LeaveUpdateViewTest(self):
         self.client.login(username='testuser1', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/update/1/')
         self.assertEquals(response.context['form'].user, self.test_user1)
@@ -401,30 +402,30 @@ class LeaveCreateViewTest(TestCase):
         self.assertEquals(annual_leave, 15)
 
     ### LeaveDetailViewTest ###
-    def test_redirects_if_not_logged_in(self):
+    def test_redirects_if_not_logged_in_LeaveDetailViewTest(self):
         response = self.client.get('/leave_records/detail/1/')
         self.assertRedirects(response, '/login/?next=/leave_records/detail/1/')
 
-    def test_forbidden_if_not_superuser_and_owner(self):
+    def test_forbidden_if_not_superuser_and_owne_LeaveDetailViewTestr(self):
         self.client.login(username='testuser3', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/detail/1/')
         self.assertEqual(response.status_code, 403)
 
-    # superuser
-    def test_logged_in_url_exists_at_desired_location(self):
+    def test_logged_in_url_exists_at_desired_location_LeaveDetailViewTest(self):
+        # Test with superuser
         self.client.login(username='testuser1', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/detail/1/')
         self.assertEqual(response.status_code, 200)
 
-    # owner
-    def test_logged_in_url_accessible_by_name_and_uses_correct_template(self):
+    def test_logged_in_url_accessible_by_name_and_uses_correct_template_LeaveDetailViewTest(self):
+        # Test with owner
         self.client.login(username='testuser2', password='1X<ISRUkw+tuK')
         response = self.client.get(reverse_lazy('leave_records:detail_leave',
                                                 kwargs={'pk': 1}))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'form_leave.html')
 
-    def test_form_has_kwargs_user(self):
+    def test_form_has_kwargs_user_LeaveDetailViewTest(self):
         self.client.login(username='testuser1', password='1X<ISRUkw+tuK')
         response = self.client.get('/leave_records/detail/1/')
         self.assertEquals(response.context['form'].user, self.test_user1)
@@ -445,14 +446,61 @@ class LeaveCreateViewTest(TestCase):
             })
         self.assertRedirects(response, reverse_lazy('leave_records:index'))
 
-    # def test_leave_calculation(self):
-    #     response = self.client.post(
-    #         '/leave_records/ajax/leave_calculation',
-    #         data={
-    #             {'start_date': '2019-1-31'},
-    #             {'end_date': '2019-2-8'},
-    #         },
-    #         content_type='application/json',
-    #     )
-    #     print(response['content'])
-    #     # self.assertEquals( == 3)
+    ### Leave Calculation ###
+    def test_leave_calculation_more_than_one_day(self):
+        response = self.client.get(
+            '/leave_records/ajax/leave_calculation',
+            data={
+                'start_date': '2019-2-1',
+                'end_date': '2019-2-8'
+            },
+            content_type='application/json',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+
+        decoded_json = json.loads(response.content)
+        self.assertEquals(decoded_json['content']['days_spend'], 3)
+
+    def test_leave_calculation_broken_period(self):
+        response = self.client.get(
+            '/leave_records/ajax/leave_calculation',
+            data={
+                'start_date': '2019-2-9',
+                'end_date': '2019-2-8'
+            },
+            content_type='application/json',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+
+        decoded_json = json.loads(response.content)
+        self.assertEquals(decoded_json['content']['days_spend'], 0)
+
+    def test_leave_calculation_half_day(self):
+        response = self.client.get(
+            '/leave_records/ajax/leave_calculation',
+            data={
+                'start_date': '2019-2-8',
+                'end_date': '2019-2-8',
+                'day_type': 'HD'
+            },
+            content_type='application/json',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+
+        decoded_json = json.loads(response.content)
+        self.assertEquals(decoded_json['content']['days_spend'], 0.5)
+
+    def test_leave_calculation_one_day(self):
+        response = self.client.get(
+            '/leave_records/ajax/leave_calculation',
+            data={
+                'start_date': '2019-2-8',
+                'end_date': '2019-2-8',
+                'day_type': 'FD'
+            },
+            content_type='application/json',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+
+        decoded_json = json.loads(response.content)
+        self.assertEquals(decoded_json['content']['days_spend'], 1)

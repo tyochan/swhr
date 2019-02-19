@@ -6,6 +6,8 @@ from personal_details.models import User
 from . import choices
 import datetime
 
+from django.urls import reverse
+
 
 class Payment(models.Model):
     user = models.ForeignKey(
@@ -95,17 +97,20 @@ class Payment(models.Model):
     def __str__(self):
         return f'{self.user}: {self.period_start} to {self.period_end} of ${self.net_pay}'
 
+    def get_absolute_url(self):
+        return reverse('payroll:index')
+
     @property
     def third_month(self):
-        date_joined = (self.user.date_joined
-                       + datetime.timedelta(days=1)).date()
+        date_joined = (self.user.date_joined +
+                       datetime.timedelta(days=1)).date()
         # print(
         #     f'{self.period_end} to {date_joined} as {(self.period_end - date_joined).days}')
         return 60 <= (self.period_end - date_joined).days < 90
 
     @property
     def start_late(self):
-        date_joined = (self.user.date_joined
-                       + datetime.timedelta(days=1)).date()
+        date_joined = (self.user.date_joined +
+                       datetime.timedelta(days=1)).date()
         # print(f'{self.period_start} to {date_joined}')
         return self.period_start < date_joined

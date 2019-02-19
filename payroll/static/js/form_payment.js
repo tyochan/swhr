@@ -25,9 +25,9 @@ $().ready(function() {
   $('#id_pay_date').datepicker("setStartDate", getStartDate())
 
   // Change export pdf urls
-  array = location.pathname.split("/")
-  id = array[array.length - 1]
-  $('#id_export_pdf').attr("href", "../payslipPDF/" + id)
+  // array = location.pathname.split("/")
+  // id = array[array.length - 1]
+  // $('#id_export_pdf').attr("href", "../payslipPDF/" + id)
 
   $('#id_user').trigger("change")
 });

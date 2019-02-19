@@ -144,9 +144,9 @@ class LeaveDetailView(UserPassesTestMixin, UpdateView):
 @ajax
 def leave_calculation(request):
     start_date = datetime.datetime.strptime(
-        request.GET['start_date'], '%Y-%m-%d')
+        request.GET.get('start_date', '2019-1-2'), '%Y-%m-%d')
     end_date = datetime.datetime.strptime(
-        request.GET['end_date'], '%Y-%m-%d')
+        request.GET.get('end_date', '2019-1-1'), '%Y-%m-%d')
 
     days_spend = utils.period_spend_days(start_date, end_date)
 
